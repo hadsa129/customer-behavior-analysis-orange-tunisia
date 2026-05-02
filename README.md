@@ -1,156 +1,156 @@
-# Analyse du Comportement Client & Recommandation Personnalisée – Orange Tunisie
+# Customer Behavior Analysis & Personalized Recommendation Platform - Orange Tunisia
 
-## 🎯 Objectif
+## 🎯 Objective
 
-Cette plateforme d'analyse avancée permet de comprendre le comportement des clients d'Orange Tunisie et de fournir des recommandations personnalisées. Elle combine des techniques de big data, de machine learning et d'IA pour offrir des insights actionnables aux équipes marketing.
+This advanced analytics platform enables understanding of Orange Tunisia customer behavior and provides personalized recommendations. It combines big data, machine learning, and AI techniques to deliver actionable insights to marketing teams.
 
-## ✨ Fonctionnalités Principales
+## ✨ Key Features
 
-### 📊 Tableau de Bord Marketing
-- Visualisation en temps réel des KPI clés
-- Segmentation avancée des clients
-- Suivi des campagnes marketing
+### 📊 Marketing Dashboard
+- Real-time KPI visualization
+- Advanced customer segmentation
+- Marketing campaign tracking
 
-### 🤖 Intelligence Artificielle
-- Détection du churn client
-- Système de recommandation personnalisé
-- Analyse prédictive des comportements
+### 🤖 Artificial Intelligence
+- Customer churn detection
+- Personalized recommendation system
+- Predictive behavior analysis
 
-### 📈 Analyse Avancée
-- Traitement de données massives avec Apache Spark
-- Rapports personnalisables
-- Export des analyses en différents formats
+### 📈 Advanced Analytics
+- Massive data processing with Apache Spark
+- Customizable reports
+- Analysis export in multiple formats
 
 ## 🏗️ Architecture
-- **Frontend** : HTML5, CSS3, JavaScript, Chart.js
-- **Backend** : Django 5.2, Django REST Framework
-- **Base de données** : PostgreSQL
-- **Traitement des données** : Apache Spark, Pandas
-- **Machine Learning** : Scikit-learn, XGBoost
-- **IA** : LangChain, OpenAI, Ollama
+- **Frontend**: HTML5, CSS3, JavaScript, Chart.js
+- **Backend**: Django 5.2, Django REST Framework
+- **Database**: PostgreSQL
+- **Data Processing**: Apache Spark, Pandas
+- **Machine Learning**: Scikit-learn, XGBoost
+- **AI**: LangChain, OpenAI, Ollama
 
-## 📋 Prérequis
+## 📋 Prerequisites
 
-### Matériel
-- Au moins 8 Go de RAM (16 Go recommandé)
-- 20 Go d'espace disque disponible
-- Processeur 64 bits (4 cœurs minimum)
+### Hardware
+- Minimum 8 GB RAM (16 GB recommended)
+- 20 GB available disk space
+- 64-bit processor (4 cores minimum)
 
-### Logiciels
+### Software
 - Python 3.10+
-- Java 11 (nécessaire pour Apache Spark)
+- Java 11 (required for Apache Spark)
 - PostgreSQL 13+
 - Apache Spark 3.3.1
-- pip (gestionnaire de paquets Python)
+- pip (Python package manager)
 
 ## 🚀 Installation
 
-### 1. Cloner le dépôt
+### 1. Clone the repository
 ```bash
-git clone https://github.com/votre-utilisateur/spark_delta_hive_metastore.git
+git clone https://github.com/your-user/spark_delta_hive_metastore.git
 cd spark_delta_hive_metastore
 ```
 
-### 2. Configuration de l'environnement
+### 2. Environment setup
 
-#### 2.1. Créer un environnement virtuel
+#### 2.1. Create virtual environment
 ```bash
-# Sur Linux/Mac
+# On Linux/Mac
 python -m venv venv
 source venv/bin/activate
 
-# Sur Windows
+# On Windows
 python -m venv venv
 .\venv\Scripts\activate
 ```
 
-#### 2.2. Installer les dépendances
+#### 2.2. Install dependencies
 ```bash
-# Installer les dépendances de base
+# Install base dependencies
 pip install -r requirements/requirements.txt
 
-# Installer les dépendances de l'application Django
+# Install Django application dependencies
 cd client_behavior_platform
 pip install -r requirements.txt
 ```
 
-### 3. Configuration de la base de données
+### 3. Database configuration
 
-#### 3.1. Installation de PostgreSQL
-- Installer PostgreSQL 13+ depuis [le site officiel](https://www.postgresql.org/download/)
-- Créer une nouvelle base de données
+#### 3.1. PostgreSQL installation
+- Install PostgreSQL 13+ from [official website](https://www.postgresql.org/download/)
+- Create a new database
 
-#### 3.2. Configuration des variables d'environnement
-Créer un fichier `.env` à la racine du projet avec le contenu suivant :
+#### 3.2. Environment variables configuration
+Create a `.env` file at the project root with the following content:
 ```
-# Configuration de la base de données
-DB_NAME=votre_base_de_donnees
-DB_USER=votre_utilisateur
-DB_PASSWORD=votre_mot_de_passe
+# Database configuration
+DB_NAME=your_database
+DB_USER=your_user
+DB_PASSWORD=your_password
 DB_HOST=localhost
 DB_PORT=5432
 
-# Clé secrète Django (à générer pour la production)
-SECRET_KEY=votre_clé_secrète_très_longue_et_sécurisée
+# Django secret key (generate for production)
+SECRET_KEY=your_very_long_and_secure_secret_key
 
-# Configuration pour Spark (optionnel)
-SPARK_HOME=/chemin/vers/votre/installation/spark
+# Spark configuration (optional)
+SPARK_HOME=/path/to/your/spark/installation
 PYSPARK_PYTHON=python3
 ```
 
-### 4. Initialisation de la base de données
+### 4. Database initialization
 ```bash
-# Se placer dans le dossier du projet Django
+# Navigate to Django project folder
 cd client_behavior_platform
 
-# Appliquer les migrations
+# Apply migrations
 python manage.py migrate
 
-# Créer un superutilisateur (suivez les instructions)
+# Create superuser (follow instructions)
 python manage.py createsuperuser
 ```
 
-## 🏃‍♂️ Lancer l'application
+## 🏃‍♂️ Running the Application
 
-### 1. Mode développement
+### 1. Development mode
 ```bash
-# Se placer dans le dossier du projet Django
+# Navigate to Django project folder
 cd client_behavior_platform
 
-# Démarrer le serveur de développement
+# Start development server
 python manage.py runserver
 ```
 
-L'application sera disponible à l'adresse : http://127.0.0.1:8000/
+Application will be available at: http://127.0.0.1:8000/
 
-### 2. Mode production avec Gunicorn
+### 2. Production mode with Gunicorn
 ```bash
-# Installation de Gunicorn (si ce n'est pas déjà fait)
+# Install Gunicorn (if not already done)
 pip install gunicorn
 
-# Lancer Gunicorn (depuis le dossier client_behavior_platform)
+# Launch Gunicorn (from client_behavior_platform folder)
 gunicorn client_behavior_platform.wsgi:application --bind 0.0.0.0:8000 --workers 4
 ```
 
-### 3. Configuration du serveur web (Nginx + Gunicorn) - Optionnel pour la production
+### 3. Web server configuration (Nginx + Gunicorn) - Optional for production
 
-#### Installation de Nginx
+#### Nginx installation
 ```bash
-# Sur Ubuntu/Debian
+# On Ubuntu/Debian
 sudo apt update
 sudo apt install nginx
 
-# Sur CentOS/RHEL
+# On CentOS/RHEL
 sudo yum install nginx
 ```
 
-#### Configuration de Nginx
-Créer un fichier de configuration pour votre site dans `/etc/nginx/sites-available/` (ou `/etc/nginx/conf.d/` selon votre distribution) :
+#### Nginx configuration
+Create a configuration file for your site in `/etc/nginx/sites-available/` (or `/etc/nginx/conf.d/` depending on your distribution):
 
 ```nginx
 server {
     listen 80;
-    server_name votre-domaine.com;
+    server_name your-domain.com;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -161,238 +161,429 @@ server {
     }
     
     location /static/ {
-        alias /chemin/vers/votre/projet/client_behavior_platform/static/;
+        alias /path/to/your/project/client_behavior_platform/static/;
     }
     
     location /media/ {
-        alias /chemin/vers/votre/projet/client_behavior_platform/media/;
+        alias /path/to/your/project/client_behavior_platform/media/;
     }
 }
 ```
 
-#### Activer la configuration et redémarrer Nginx
+#### Activate configuration and restart Nginx
 ```bash
-# Sur Ubuntu/Debian
-sudo ln -s /etc/nginx/sites-available/votre-site /etc/nginx/sites-enabled/
-sudo nginx -t  # Tester la configuration
+# On Ubuntu/Debian
+sudo ln -s /etc/nginx/sites-available/your-site /etc/nginx/sites-enabled/
+sudo nginx -t  # Test configuration
 sudo systemctl restart nginx
 
-# Sur CentOS/RHEL
+# On CentOS/RHEL
 sudo systemctl enable nginx
 sudo systemctl start nginx
 ```
 
-## 📦 Dépendances principales
+## 📦 Main Dependencies
 
 ### Backend
-- Django 5.2.4 - Framework web Python
-- Django REST Framework 3.16.0 - API REST pour Django
-- Psycopg2 2.9.10 - Adaptateur PostgreSQL pour Python
-- Pandas 2.3.1 - Manipulation de données
+- Django 5.2.4 - Python web framework
+- Django REST Framework 3.16.0 - REST API for Django
+- Psycopg2 2.9.10 - PostgreSQL adapter for Python
+- Pandas 2.3.1 - Data manipulation
 - Scikit-learn 1.7.1 - Machine Learning
 
-### IA & Machine Learning
-- LangChain 0.3.27 - Framework pour applications LLM
-- OpenAI 1.97.1 - API OpenAI
-- Ollama 0.5.1 - Intégration avec modèles LLM locaux
-- XGBoost - Algorithmes de boosting
+### AI & Machine Learning
+- LangChain 0.3.27 - Framework for LLM applications
+- OpenAI 1.97.1 - OpenAI API
+- Ollama 0.5.1 - Local LLM model integration
+- XGBoost - Boosting algorithms
 
-### Utilitaires
-- NumPy 2.3.1 - Calcul numérique
-- SciPy 1.16.0 - Outils scientifiques
-- Matplotlib 3.10.3 - Visualisation de données
-- Requests 2.32.4 - Requêtes HTTP
-- python-dotenv 0.19.0 - Gestion des variables d'environnement
-- Gunicorn 23.0.0 - Serveur WSGI HTTP pour production
+### Utilities
+- NumPy 2.3.1 - Numerical computing
+- SciPy 1.16.0 - Scientific tools
+- Matplotlib 3.10.3 - Data visualization
+- Requests 2.32.4 - HTTP requests
+- python-dotenv 0.19.0 - Environment variable management
+- Gunicorn 23.0.0 - Production WSGI HTTP server
 
-## 🐳 Option Docker (Facultatif)
+---
 
-### Prérequis
+## 🔄 ETL PIPELINE & DATA PROCESSING
+
+### 📊 Data Sources
+
+#### Input Data Files
+- **Customer files**: `clients_*.csv` (profiles, usage, Max It history...)
+- **Options files**: `options_*.csv` (subscribed options, purchase history...)
+- **Transaction files**: 
+  - `recharge_*.csv` - Customer recharge records
+  - `achat_option_*.csv` - Option purchase records
+  - `roue_chance_*.csv` - Wheel of fortune game records
+- **Reference data**: `catalogue.csv` - Product and service catalog
+
+#### Data Structure
+```
+data/
+├── client_data/          # Raw customer data
+├── segmentation_result/  # Segmentation results
+├── churn_results/        # Churn analysis results
+└── processed/           # Processed and cleaned data
+```
+
+### 🏗️ ETL Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌──────────────────┐
+│  Raw Data Sources│ -> │  Data Extraction │ -> │ Data Transformation│ -> │  Loading & Storage │
+└─────────────────┘    └──────────────────┘    └─────────────────┘    └──────────────────┘
+         │                       │                       │                       │
+    CSV Files              Pandas/Spark           ML Processing        PostgreSQL/Django
+    Database               Data Cleaning          Feature Engineering   API Endpoints
+    External APIs          Validation             Segmentation         Dashboard Display
+```
+
+### 📋 ETL Process Steps
+
+#### 1. Data Extraction (`help_functions.py`)
+```python
+# Key extraction functions:
+- extract_volumes()          # Extract data, voice, SMS usage from descriptions
+- generate_consommations()  # Generate daily consumption aggregations
+- extract_month()           # Extract monthly periods for analysis
+- extract_duree()           # Calculate option validity periods
+```
+
+#### 2. Data Transformation
+- **Data Cleaning**: Remove duplicates, handle missing values
+- **Feature Engineering**: Create behavioral features from raw transaction data
+- **Aggregation**: Daily/monthly consumption summaries per customer
+- **Normalization**: Standardize numerical features for ML models
+
+#### 3. Data Loading & Processing
+- **Database Storage**: Load processed data into PostgreSQL
+- **ML Model Training**: Train segmentation, churn, and recommendation models
+- **Real-time Processing**: Handle new transaction data through Django API
+
+### 🤖 Machine Learning Pipeline
+
+#### Customer Segmentation
+- **Algorithm**: K-Means clustering (MLlib)
+- **Features**: Usage patterns, revenue, engagement metrics
+- **Output**: Customer segments with behavioral profiles
+- **Implementation**: `script_analyse_segment.py`
+
+#### Churn Prediction
+- **Algorithm**: XGBoost classifier
+- **Features**: Historical usage, recent activity changes, complaints
+- **Output**: Churn probability scores per customer
+- **Implementation**: `churn_analysis.py`
+
+#### Recommendation System
+- **Algorithm**: Cosine similarity + collaborative filtering
+- **Features**: Purchase history, usage patterns, segment preferences
+- **Output**: Personalized product recommendations
+- **Implementation**: `script_analyse_client.py`
+
+### 📊 Data Flow Examples
+
+#### Customer Analysis Pipeline
+```python
+# 1. Load customer data
+client_json, all_options, clients_df = filtrer_clients(
+    msisdn, date_debut, date_fin, folder_path
+)
+
+# 2. Generate consumption patterns
+consommation_client = dataframe_recommandations_vers_json_client(
+    all_options, catalogue
+)
+
+# 3. Generate marketing recommendations
+rapport_client = generer_rapport_marketing_client(client_json)
+messages_options = generer_messages_options_client(
+    options_list, consommation_client, all_options
+)
+```
+
+#### Segment Analysis Pipeline
+```python
+# 1. Filter customers by segment criteria
+result, all_options, clients_df, segment_id = filtrer_clients_par_segments(
+    segment_criteria, date_debut, date_fin, folder_path
+)
+
+# 2. Build segment profile
+profil_segment = construire_profil_segment(all_options)
+
+# 3. Generate segment-level recommendations
+rapport_segment, taux_maxit = generer_rapport_marketing_segment(
+    segment_id, result
+)
+```
+
+### 🔄 Batch Processing with Apache Spark
+
+#### Spark Configuration
+- **Version**: Apache Spark 3.3.1+
+- **Integration**: PySpark for Python-based processing
+- **Storage**: Hive metastore with PostgreSQL backend
+- **Deployment**: Docker containers for scalability
+
+#### Spark Jobs
+- **Data Ingestion**: Process large CSV files in parallel
+- **Feature Engineering**: Create ML features at scale
+- **Model Training**: Train ML models on distributed datasets
+- **Batch Scoring**: Generate predictions for all customers
+
+### 📈 Real-time Processing
+
+#### Django API Integration
+- **Endpoints**: RESTful APIs for real-time customer analysis
+- **Caching**: Redis for frequently accessed data
+- **Background Tasks**: Celery for async ML processing
+- **WebSocket**: Real-time dashboard updates
+
+#### Data Freshness
+- **Batch Updates**: Daily processing of new transaction data
+- **Real-time Triggers**: Immediate processing of high-value events
+- **Model Retraining**: Weekly model updates with new data
+
+---
+
+## 🐳 Docker Option (Optional)
+
+### Prerequisites
 - Docker 20.10+
 - Docker Compose 2.0+
 
-### Lancer avec Docker Compose
+### Launch with Docker Compose
 ```bash
-# Construire et démarrer les conteneurs
+# Build and start containers
 docker-compose up --build -d
 
-# Arrêter les conteneurs
+# Stop containers
 docker-compose down
 
-# Voir les logs
+# View logs
 docker-compose logs -f
 ```
 
-### Commandes utiles
+### Useful Commands
 ```bash
-# Accéder au shell du conteneur principal
+# Access main container shell
 docker-compose exec web bash
 
-# Exécuter des commandes de gestion Django
+# Run Django management commands
 docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 
-# Redémarrer un service spécifique
+# Restart specific service
 docker-compose restart web
 ```
 
-### Configuration Docker
-Le fichier `docker-compose.yml` configure les services suivants :
-- **web** : Application Django
-- **db** : Base de données PostgreSQL
-- **redis** : Cache et file d'attente (si configuré)
-- **spark** : Cluster Spark (optionnel)
+### Docker Configuration
+The `docker-compose.yml` file configures the following services:
+- **web**: Django application
+- **db**: PostgreSQL database
+- **redis**: Cache and queue (if configured)
+- **spark**: Spark cluster (optional)
 
-## 🌐 Accès
-- Application web : http://localhost:8000
-- Interface de marketing : http://localhost:8000/marketing-panel
-- API REST : http://localhost:8000/api/
+## 🌐 Access Points
+- Web application: http://localhost:8000
+- Marketing interface: http://localhost:8000/marketing-panel
+- REST API: http://localhost:8000/api/
 
-## 🎯 Introduction
-Ce projet vise à concevoir une plateforme intelligente permettant d’analyser les comportements des clients Orange Tunisie, de prédire le churn, et de recommander automatiquement des offres personnalisées, en particulier via l’application Max It. Il s’inscrit dans la stratégie de transformation digitale de l’opérateur, avec un accent sur la personnalisation marketing et l’optimisation de l’engagement client.
-
----
-
-## 📌 Objectifs du projet
-### Objectifs métiers
-- Analyser les comportements multi-canaux (Max It, USSD…)
-- Segmenter dynamiquement les clients
-- Prédire le churn
-- Recommander des offres personnalisées
-- Générer des messages marketing adaptés
-- Aider les équipes marketing via des dashboards interactifs
-
-### Objectifs techniques
-- Architecture Big Data distribuée
-- Modèles IA pour segmentation, churn, recommandation
-- Intégration de LLM pour la génération de contenu marketing
-- Dashboards décisionnels dynamiques
+## 🎯 Project Introduction
+This project aims to design an intelligent platform for analyzing Orange Tunisia customer behaviors, predicting churn, and automatically recommending personalized offers, particularly through the Max It application. It aligns with the operator's digital transformation strategy, focusing on marketing personalization and customer engagement optimization.
 
 ---
 
-## 📂 Données d’entrée
-- **Fichiers clients** : `clients_*.csv` (profils, usages, historique Max It…)
-- **Fichiers options** : `options_*.csv` (options souscrites, historiques d’achats…)
-- **Dossiers** : `data/`, `client_data/`, `segmentation_result/` (données brutes, résultats de segmentation…)
-- **Sources** : exports CRM, logs applicatifs, historiques d’achats
+## 📌 Project Objectives
+
+### Business Objectives
+- Analyze multi-channel behaviors (Max It, USSD...)
+- Dynamically segment customers
+- Predict churn
+- Recommend personalized offers
+- Generate adapted marketing messages
+- Assist marketing teams with interactive dashboards
+
+### Technical Objectives
+- Distributed Big Data architecture
+- AI models for segmentation, churn, recommendation
+- LLM integration for marketing content generation
+- Dynamic decision-making dashboards
 
 ---
 
-## 🏗️ Architecture générale & pipeline
-```
-+------------------+        +------------------+        +----------------+        +------------------------+
-|  Données Clients |  -->   | Analyse & Modèles|  -->   |   Recommandation|  -->  |  Dashboards & Messages |
-+------------------+        +------------------+        +----------------+        
-```
+## 🧠 Models and Artificial Intelligence
 
-### Étapes principales
-- **Préparation, segmentation et churn** : tout le pipeline principal de préparation des données, segmentation (KMeans) et prédiction du churn (Random Forest/XGBoost) est centralisé dans le notebook `prep_hive.ipynb`. Les scripts `script_analyse_client.py` et `script_analyse_segment.py` permettent d’exécuter séparément l’analyse comportementale, la segmentation et la prédiction du churn.
-- **Essais de personnalisation marketing** : le notebook `langchain.ipynb` sert uniquement à tester des flux de génération de contenu marketing personnalisé (non utilisé dans le pipeline principal).
-- **Déploiement & intégration** : tout le code de déploiement, l’intégration des modèles (analyse, churn, segmentation) et les dashboards sont regroupés dans le dossier `client_behavior_platform/`, notamment via l’application Django `marketing_dashboard` et la dockerisation (`docker-compose.yml`).
-- **Visualisation** : dashboards interactifs accessibles via l’app Django (`marketing_dashboard/`) ou exports Power BI.
+### Segmentation Model
+- **Algorithm**: K-Means (MLlib)
+- **Input Features**: Usage patterns, revenue, engagement metrics
+- **Output**: Customer segments with behavioral characteristics
+- **Validation**: Silhouette score, business domain validation
 
----
+### Churn Prediction Model
+- **Algorithm**: XGBoost
+- **Features**: Historical usage, recent changes, complaint patterns
+- **Output**: Churn probability (0-1 scale)
+- **Performance**: AUC-ROC > 0.85 target
 
-## 🧠 Modèles et intelligence artificielle
-- **Segmentation** : KMeans (MLlib)
-- **Churn** : XGBoost
-- **Recommandation** : Similarité cosinus
-- **LLM/Contenu marketing** : Qwen via LangChain, Ollama
+### Recommendation Engine
+- **Algorithm**: Cosine similarity + collaborative filtering
+- **Features**: Purchase history, usage patterns, segment preferences
+- **Output**: Ranked list of personalized recommendations
+- **Evaluation**: Precision@K, recall@K metrics
 
----
-
-## 🛠️ Plateforme technique
-- **Django** : backend web, gestion des utilisateurs, dashboards (`client_behavior_platform/`, `marketing_dashboard/`)
-- **Ollama** : serveur de LLM pour la génération de texte (`start_ollama.sh`)
-- **Docker** : déploiement et orchestration (`Dockerfile`, `docker-compose.yml`)
-- **Spark/Hive/Hadoop** : traitement Big Data (Dockerfiles spécifiques, dossiers `spark/`, `hadoop/`, `hive/`)
-- **LangChain** : intégration LLM (notebooks/scripts dédiés)
+### LLM Integration
+- **Model**: Qwen via LangChain, Ollama
+- **Purpose**: Marketing content generation
+- **Applications**: Personalized messages, campaign copy
+- **Fine-tuning**: Domain-specific marketing language
 
 ---
 
-## 🚀 Déploiement et utilisation
-### Prérequis
+## 🛠️ Technical Platform
+
+### Django Application
+- **Backend**: Web framework, user management, dashboards
+- **Location**: `client_behavior_platform/`, `marketing_dashboard/`
+- **Features**: Customer analysis, segment exploration, churn monitoring
+
+### Ollama LLM Server
+- **Purpose**: Local LLM serving for text generation
+- **Script**: `start_ollama.sh`
+- **Integration**: LangChain for structured prompts
+
+### Docker Orchestration
+- **Files**: `Dockerfile`, `docker-compose.yml`
+- **Services**: Web app, database, Spark cluster, Redis
+- **Benefits**: Consistent deployment, scalability
+
+### Big Data Stack
+- **Spark**: Distributed data processing
+- **Hive**: Data warehouse with metastore
+- **Hadoop**: Distributed storage (optional)
+- **Integration**: Docker-based deployment
+
+---
+
+## 🚀 Deployment and Usage
+
+### Prerequisites
 - Docker / Docker Compose
 - Python 3.10+
-- Accès aux fichiers de données
+- Access to data files
 
-### Lancement rapide
+### Quick Start
 ```bash
-# Construire et démarrer les services
+# Build and start services
 sudo docker-compose up --build
 
-# Lancer Ollama (LLM)
+# Start Ollama (LLM)
 bash start_ollama.sh
 
-# Lancer le serveur Django
+# Start Django server
 python manage.py runserver
 ```
 
-### Interfaces accessibles après déploiement
-Après le lancement des services, plusieurs interfaces sont disponibles :
+### Available Interfaces
+After launching services, several interfaces are available:
 
-- **Interface web marketing (`marketing_dashboard`)**  
-  Accessible via navigateur à [http://localhost:8000](http://localhost:8000)  
-  → Tableaux de bord, visualisation des segments, scores de churn, génération de messages marketing, rapports interactifs, KPIs, etc.
+#### Marketing Web Interface (`marketing_dashboard`)
+Accessible via browser at [http://localhost:8000](http://localhost:8000)
+→ Dashboards, segment visualization, churn scores, marketing message generation, interactive reports, KPIs, etc.
 
-- **Interface d’administration Django**  
-  Accessible via [http://localhost:8000/admin](http://localhost:8000/admin)  
-  → Gestion des utilisateurs, des modèles, des droits d’accès et administration avancée de la plateforme.
+#### Django Admin Interface
+Accessible via [http://localhost:8000/admin](http://localhost:8000/admin)
+→ User management, model administration, access rights, advanced platform administration.
 
-- **API REST** (si exposée dans le projet)  
-  → Pour l’intégration ou l’automatisation (à préciser selon les endpoints disponibles).
+#### REST API
+→ For integration or automation (specific endpoints to be documented).
 
-- **Accès aux notebooks analytiques**  
-  → Pour les data scientists souhaitant exécuter ou adapter les notebooks comme `prep_hive.ipynb` (à préciser selon l’environnement Jupyter ou autre).
+#### Analytical Notebooks Access
+→ For data scientists wishing to execute or adapt notebooks like `prep_hive.ipynb` (environment-dependent).
 
-### 🖥️ Interface web – `marketing_dashboard`
-L’application Django `marketing_dashboard` fournit une interface web complète, dédiée aux équipes marketing et administrateurs. Elle propose :
+### 🖥️ Web Interface – `marketing_dashboard`
+The Django `marketing_dashboard` application provides a complete web interface for marketing teams and administrators. It offers:
 
-- **Analyse client** : fiche détaillée d’un client (historique, comportements, scores, recommandations personnalisées).
-- **Analyse segment** : exploration de segments de clients, filtres avancés, rapports, recommandations groupées, génération de messages marketing pour un segment.
-- **Analyse segmentation** : visualisation interactive des clusters/segments, statistiques globales, évolution des groupes.
-- **Analyse churn** : accès aux scores de churn, listes de clients à risque, actions de rétention ciblées.
-- **Tables** : accès aux tables de données (clients, options, historiques), recherche et export.
-- **Historiques marketing** : suivi des campagnes envoyées, taux de clics, conversions, logs des messages.
-- **Authentification** : gestion sécurisée de l’accès à la plateforme (login, gestion des rôles et droits d’accès).
+- **Customer Analysis**: Detailed customer file (history, behaviors, scores, personalized recommendations)
+- **Segment Analysis**: Customer segment exploration, advanced filters, reports, group recommendations, marketing message generation for segments
+- **Segmentation Analysis**: Interactive cluster/segment visualization, global statistics, group evolution
+- **Churn Analysis**: Access to churn scores, at-risk customer lists, targeted retention actions
+- **Tables**: Access to data tables (customers, options, histories), search and export
+- **Marketing History**: Campaign tracking, click-through rates, conversions, message logs
+- **Authentication**: Secure access management (login, role and access rights management)
 
-L’accès à l’interface se fait via un navigateur, après le lancement du serveur Django (par défaut sur http://localhost:8000). L’interface est responsive et pensée pour une prise en main rapide par les équipes métier.
-
----
-
-## 📊 Visualisation & dashboards
-- Dashboards interactifs dans l’app Django (`marketing_dashboard/`)
-- Exports pour Power BI dans `segmentation_result/` ou `churn_results/`
-- Accès via interface web pour les équipes métier
+Access is via browser after starting the Django server (default http://localhost:8000). The interface is responsive and designed for quick adoption by business teams.
 
 ---
 
-## 🗂️ Fichiers principaux du projet
-| Fichier/Dossier             | Rôle                                                      |
-|-----------------------------|-----------------------------------------------------------|
-| `Dockerfile`                | Image Docker principale                                   |
-| `docker-compose.yml`        | Orchestration des services                                |
-| `start_ollama.sh`           | Lancement du serveur LLM                                  |
-| `marketing_analyst_bot.py`  | Génération de messages marketing via LLM                  |
-| `script_analyse_client.py`  | Analyse comportementale et prédiction de churn            |
-| `script_analyse_segment.py` | Segmentation clients                                      |
-| `marketing_dashboard/`      | App Django, dashboards                                    |
-| `requirements.txt`          | Dépendances Python                                        |
-| `help_functions.py`         | Fonctions utilitaires                                     |
-| `langchain.ipynb`           | Intégration LLM / génération de contenu                   |
-| `data/`, `client_data/`     | Données d’entrée                                         |
+## 📊 Visualization & Dashboards
+- Interactive dashboards in Django app (`marketing_dashboard/`)
+- Power BI exports in `segmentation_result/` or `churn_results/`
+- Web interface access for business teams
 
 ---
 
-## ✅ Résultats attendus & impact
-- Hausse de l’adoption Max It
-- Personnalisation marketing à grande échelle
-- Réduction du churn
-- Communication ciblée plus efficace
-- Meilleure allocation des campagnes
+## 🗂️ Main Project Files
+
+| File/Folder | Role |
+|-------------|------|
+| `Dockerfile` | Main Docker image |
+| `docker-compose.yml` | Service orchestration |
+| `start_ollama.sh` | LLM server startup |
+| `marketing_analyst_bot.py` | LLM-based marketing message generation |
+| `script_analyse_client.py` | Behavioral analysis and churn prediction |
+| `script_analyse_segment.py` | Customer segmentation |
+| `marketing_dashboard/` | Django app, dashboards |
+| `requirements.txt` | Python dependencies |
+| `help_functions.py` | Utility functions for ETL |
+| `langchain.ipynb` | LLM integration / content generation |
+| `prep_hive.ipynb` | Main ETL pipeline notebook |
+| `data/`, `client_data/` | Input data |
 
 ---
 
-## 👥 Contact / Contributeurs
-Projet réalisé par Hadil Sahraoui dans le cadre du PFE chez Orange Tunisie.
+## ✅ Expected Results & Impact
 
+### Business Impact
+- Increased Max It adoption
+- Large-scale marketing personalization
+- Churn reduction
+- More effective targeted communication
+- Better campaign allocation
+
+### Technical Benefits
+- Scalable data processing architecture
+- Real-time customer insights
+- Automated recommendation generation
+- Integrated ML pipeline
+- Comprehensive analytics platform
+
+---
+
+## 👥 Contact / Contributors
+Project by Hadil Sahraoui as part of PFE at Orange Tunisia.
+
+---
+
+## 📚 Additional Documentation
+
+### Data Schema Documentation
+- Customer tables: Profile and demographic information
+- Transaction tables: Purchase and usage history
+- Option catalog: Product and service definitions
+- Segment mappings: Customer segment assignments
+
+### API Documentation
+- Customer analysis endpoints
+- Segmentation queries
+- Churn prediction services
+- Recommendation generation
+
+### Monitoring & Maintenance
+- Model performance tracking
+- Data quality validation
+- System health monitoring
+- Backup and recovery procedures
