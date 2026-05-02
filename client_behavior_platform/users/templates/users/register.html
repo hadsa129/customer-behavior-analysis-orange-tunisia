@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="form-page">
+    <div class="form-container">
+        <img src="{% static 'images/logo.png' %}" alt="Bank Logo">
+        <h2>Sign Up</h2>
+        <form method="post">
+            {% csrf_token %} {{ form.non_field_errors }} {{ form.username.label_tag }} {{ form.username }} {{ form.email.label_tag }} {{ form.email }} {{ form.password1.label_tag }} {{ form.password1 }} {{ form.password2.label_tag }} {{ form.password2 }}
+
+            <div class="custom-arrow">
+                {{ form.user_type.label_tag }} {{ form.user_type }}
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="{% url 'users:login' %}">Login</a></p>
+    </div>
+</body>
+
+</html>

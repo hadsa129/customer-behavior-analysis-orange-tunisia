@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+
+<body class="home-page">
+    <div class="home-container">
+        <div class="welcome-text">
+            <h1><span style="color: #ff6600;">MaxIT</span><span style="color: black;">ClientAnalyzer</span></h1>
+            <a href="{% url 'users:register' %}" class="btn">Sign UP</a>
+            <a href="{% url 'users:login' %}" class="btn">Login</a>
+        </div>
+    </div>
+</body>
+
+</html>

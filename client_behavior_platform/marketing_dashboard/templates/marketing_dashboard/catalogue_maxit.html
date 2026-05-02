@@ -1,0 +1,721 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<!-- Alpine.js pour l'interactivité -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- Animate.css pour les animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #ff6600;
+        --primary-light: #fff0e6;
+        --primary-dark: #cc5200;
+        --secondary-color: #4d4d4d;
+        --success-color: #00a86b;
+        --danger-color: #e63946;
+        --warning-color: #ff9f1c;
+        --info-color: #e6a293;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --gray-100: #f1f1f1;
+        --gray-200: #e0e0e0;
+        --gray-300: #c0c0c0;
+        --gray-400: #999999;
+        --gray-500: #666666;
+        --border-color: #e0e0e0;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+        background-color: #f8fafc;
+        color: var(--dark-color);
+        line-height: 1.6;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .catalogue-header {
+        background: linear-gradient(135deg, #ff6600, #cc5200);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(255, 102, 0, 0.2);
+    }
+    
+    .catalogue-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.1) 0%, transparent 25%);
+        pointer-events: none;
+    }
+    
+    .catalogue-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0 0 1rem 0;
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    .catalogue-subtitle {
+        font-size: 1.25rem;
+        opacity: 0.95;
+        font-weight: 400;
+        max-width: 800px;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        padding: 0.5rem 1rem;
+        border-radius: 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: var(--transition);
+    }
+    
+    .tag:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+    }
+    
+    /* Styles pour les cartes d'options */
+    .card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        transition: var(--transition);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        position: relative;
+    }
+    
+    .card-popular {
+        position: absolute;
+        top: 1rem;
+        right: -2rem;
+        transform: rotate(45deg);
+        width: 120px;
+        text-align: center;
+        background: linear-gradient(135deg, #ff8a00, #e52e71);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .card-promo {
+        position: absolute;
+        top: 1rem;
+        left: -2rem;
+        transform: rotate(-45deg);
+        width: 120px;
+        text-align: center;
+        background: linear-gradient(135deg, #00b09b, #96c93d);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        color: var(--dark-color);
+    }
+    
+    .card-subtitle {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .feature-list {
+        margin: 0 0 1.5rem 0;
+        padding: 0;
+        list-style: none;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    
+    .feature-item:last-child {
+        border-bottom: none;
+    }
+    
+    .feature-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: var(--gray-100);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        font-size: 1.25rem;
+    }
+    
+    .feature-text {
+        flex-grow: 1;
+    }
+    
+    .feature-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        margin-bottom: 0.25rem;
+    }
+    
+    .feature-value {
+        display: block;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    
+    .card-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--gray-100);
+        background-color: var(--gray-50);
+    }
+    
+    .price {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 0 0 1rem 0;
+    }
+    
+    .price-period {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: var(--transition);
+        cursor: pointer;
+        border: none;
+        width: 100%;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(255, 102, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(255, 102, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+    }
+    
+    .btn-outline:hover {
+        background-color: var(--primary-light);
+    }
+    
+    /* Filtres et recherche */
+    .filters-section {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: var(--card-shadow);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .filter-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .filter-input {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: var(--transition);
+    }
+    
+    .filter-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.1);
+    }
+    
+    /* Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        color: white;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
+    }
+    
+    .badge-orange {
+        background-color: var(--warning-color);
+    }
+    
+    .badge-green {
+        background-color: var(--success-color);
+    }
+    
+    .badge-gray {
+        background-color: var(--gray-500);
+    }
+    
+    /* Animation de chargement */
+    @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
+    
+    .loading {
+        animation: pulse 1.5s infinite ease-in-out;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .catalogue-title {
+            font-size: 2rem;
+        }
+        
+        .catalogue-subtitle {
+            font-size: 1.125rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête du catalogue -->
+    <div class="catalogue-header animate__animated animate__fadeIn">
+        <div class="max-w-4xl mx-auto relative z-10">
+            <h1 class="catalogue-title">Découvrez nos offres MaxIt</h1>
+            <p class="catalogue-subtitle">Choisissez l'option qui correspond le mieux à vos besoins en appels et en données mobiles</p>
+            <div class="flex flex-wrap">
+                <span class="tag"><i class="fas fa-mobile-alt mr-2"></i> Internet mobile</span>
+                <span class="tag"><i class="fas fa-phone-alt mr-2"></i> Appels illimités</span>
+                <span class="tag"><i class="fas fa-bolt mr-2"></i> Vitesse 4G+</span>
+                <span class="tag"><i class="fas fa-globe-africa mr-2"></i> Couverture nationale</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section Filtres -->
+    <div class="mb-8">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <div class="flex flex-col md:flex-row md:items-end gap-4">
+                <!-- Barre de recherche -->
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 p-2.5" 
+                               placeholder="Rechercher une offre...">
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <div class="flex items-center">
+                        <input id="filter-5g" type="checkbox" value="" class="w-4 h-4 text-orange-500 bg-gray-100 border-gray-200 rounded focus:ring-orange-400 focus:ring-2">
+                        <label for="filter-5g" class="ml-2 text-sm font-medium text-gray-700">5G disponible</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input id="filter-promo" type="checkbox" value="" class="w-4 h-4 text-orange-500 bg-gray-100 border-gray-200 rounded focus:ring-orange-400 focus:ring-2">
+                        <label for="filter-promo" class="ml-2 text-sm font-medium text-gray-700">En promotion</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input id="filter-international" type="checkbox" value="" class="w-4 h-4 text-orange-500 bg-gray-100 border-gray-200 rounded focus:ring-orange-400 focus:ring-2">
+                        <label for="filter-international" class="ml-2 text-sm font-medium text-gray-700">Appels internationaux</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Compteur et vue -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Nos offres MaxIt</h2>
+                <p class="text-gray-500 text-sm"><span id="result-count" class="font-semibold text-orange-600">{{ total_options }}</span> offres disponibles</p>
+            </div>
+            <div class="flex items-center bg-white rounded-lg border border-gray-200 p-1">
+                <button id="view-grid" class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors active" data-view="grid">
+                    <i class="fas fa-th-large"></i>
+                    <span class="ml-2 text-sm font-medium">Grille</span>
+                </button>
+                <button id="view-list" class="p-2 rounded-md text-gray-500 hover:bg-gray-100 transition-colors" data-view="list">
+                    <i class="fas fa-list"></i>
+                    <span class="ml-2 text-sm font-medium">Liste</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Section Options Voix -->
+        {% if options_voix %}
+        <div class="mb-12">
+            <!-- En-tête de section -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                <div class="flex items-center">
+                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 p-2.5 rounded-xl text-white mr-3 shadow-md">
+                        <i class="fas fa-wifi text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Forfaits Appels</h2>
+                        <p class="text-gray-500 text-sm">Restez connecté avec vos proches</p>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Grille d'options -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {% for option in options_voix %}
+                <div class="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative border border-gray-100">
+                    <!-- Badge Populaire -->
+                    {% if forloop.counter == 1 %}
+                    <div class="absolute top-4 right-4">
+                        <span class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                            <i class="fas fa-crown mr-1"></i> Populaire
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Badge Promotion -->
+                    {% if option.promotion %}
+                    <div class="absolute top-4 left-0 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-r-full shadow-md">
+                        -{{ option.promotion }}%
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Contenu de la carte -->
+                    <div class="p-5">
+                        <!-- En-tête -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">{{ option.name }}</h3>
+                                <span class="inline-block mt-1 px-2.5 py-0.5 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                                    Populaire
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                {% if option.ancien_prix %}
+                                <span class="text-sm text-gray-500 line-through mr-1">{{ option.ancien_prix }} DT</span>
+                                {% endif %}
+                                <span class="text-2xl font-bold text-orange-600">{{ option.prix_dt }} DT</span>
+                                <p class="text-xs text-gray-500">TTC</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Détails de l'offre -->
+                        <div class="space-y-3 my-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-phone-alt text-orange-500 w-5 mr-2"></i>
+                                <span class="text-gray-700">{{ option.duree_voix }} vers tous les réseaux</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-orange-500 w-5 mr-2"></i>
+                                <span class="text-gray-700">30 jours de validité</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Bouton de souscription -->
+                        <button class="w-full mt-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-md hover:shadow-lg">
+                            <i class="fas fa-shopping-cart mr-2"></i> Souscrire maintenant
+                        </button>
+                        
+                        
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            
+       
+        {% endif %}
+    </div>
+        <!-- Section Options Data -->
+        {% if options_data %}
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                    <i class="fas fa-wifi text-green-600"></i>
+                </span>
+                Options Data
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for option in options_data %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    <div class="p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ option.name }}</h3>
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p class="flex items-center">
+                                <i class="fas fa-wifi text-green-500 w-5 mr-2"></i>
+                                <span>{{ option.data_volume }} Mo de data</span>
+                            </p>
+                            <p class="flex items-center">
+                                <i class="far fa-calendar-alt text-green-500 w-5 mr-2"></i>
+                                <span>Valable {{ option.duree_data }} jours</span>
+                            </p>
+                            <p class="flex items-center">
+                                <i class="fas fa-phone text-green-500 w-5 mr-2"></i>
+                                <span>Appels: {{ option.voice_volume|default:0 }} min</span>
+                            </p>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-2xl font-bold text-gray-900">{{ option.prix_dt }} DT</span>
+                            <button class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                                Souscrire
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Section Forfaits Combo -->
+        {% if options_combo %}
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-2">
+                    <i class="fas fa-mobile-alt text-purple-600"></i>
+                </span>
+                Forfaits Combo (Voix + Data)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for option in options_combo %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    <div class="p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ option.name }}</h3>
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p class="flex items-center">
+                                <i class="fas fa-phone text-purple-500 w-5 mr-2"></i>
+                                <span>{{ option.voice_volume }} min d'appel</span>
+                            </p>
+                            <p class="flex items-center">
+                                <i class="fas fa-wifi text-purple-500 w-5 mr-2"></i>
+                                <span>{{ option.data_volume }} Mo de data</span>
+                            </p>
+                            <p class="flex items-center">
+                                <i class="far fa-calendar-alt text-purple-500 w-5 mr-2"></i>
+                                <span>Valable {{ option.duree_voix }} jours</span>
+                            </p>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-2xl font-bold text-gray-900">{{ option.prix_dt }} DT</span>
+                            <button class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                                Souscrire
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Aucune option trouvée -->
+        {% if not options_voix and not options_data and not options_combo %}
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <div class="text-gray-400 mb-4">
+                <i class="fas fa-box-open text-5xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune option disponible</h3>
+            <p class="text-gray-500">Aucune option ne correspond aux critères de recherche.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Compteur de résultats et vue -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+    <h2 class="text-xl font-semibold text-gray-800">
+        <span id="result-count">12</span> offres disponibles
+    </h2>
+    <div class="flex items-center space-x-2 mt-4 sm:mt-0">
+        <span class="text-sm text-gray-500">Affichage :</span>
+        <div class="inline-flex rounded-md shadow-sm" role="group">
+            <button class="px-3 py-2 text-sm font-medium rounded-l-lg border border-gray-200 bg-orange-100 text-orange-600">
+                <i class="fas fa-th-large"></i>
+            </button>
+            <button class="px-3 py-2 text-sm font-medium rounded-r-lg border-t border-b border-r border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+                <i class="fas fa-list"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Grille d'offres -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Carte d'offre -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+        <!-- En-tête de la carte -->
+        <div class="p-5 border-b border-gray-100">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Internet 4G+</h3>
+                    <p class="text-sm text-gray-500">Volume illimité</p>
+                </div>
+                <span class="px-2.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                    Populaire
+                </span>
+            </div>
+            <div class="mt-4">
+                <span class="text-2xl font-bold text-gray-900">29.900 DT</span>
+                <span class="text-sm text-gray-500">/ mois</span>
+            </div>
+        </div>
+        
+        <!-- Détails de l'offre -->
+        <div class="p-5">
+            <ul class="space-y-3">
+                <li class="flex items-start">
+                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                    <span class="text-gray-700">50 Go à haute vitesse</span>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                    <span class="text-gray-700">Appels illimités vers tous les réseaux</span>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                    <span class="text-gray-700">SMS illimités</span>
+                </li>
+            </ul>
+            
+            <!-- Bouton de souscription -->
+            <button class="w-full mt-6 py-3 px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium rounded-lg transition-colors">
+                Souscrire maintenant
+            </button>
+            
+            <!-- Détails supplémentaires -->
+            <div class="mt-4 pt-4 border-t border-gray-100 text-center">
+                <a href="#" class="text-sm font-medium text-orange-600 hover:text-orange-700">
+                    Voir les détails complets
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Autres cartes similaires... -->
+</div>
+
+<!-- Script pour le filtrage et le tri -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.getElementById('type-option');
+    const triSelect = document.getElementById('tri-options');
+    
+    // Fonction de filtrage par type
+    function filterByType() {
+        const type = typeSelect.value;
+        document.querySelectorAll('[data-type]').forEach(section => {
+            if (type === 'all' || section.getAttribute('data-type') === type) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+    }
+    
+    // Fonction de tri
+    function sortOptions() {
+        const sortBy = triSelect.value;
+        // Implémentation du tri côté client ou rafraîchissement de la page avec paramètres
+        console.log('Tri sélectionné:', sortBy);
+        // À implémenter: logique de tri
+    }
+    
+    // Écouteurs d'événements
+    typeSelect.addEventListener('change', filterByType);
+    triSelect.addEventListener('change', sortOptions);
+});
+</script>
+{% endblock %}

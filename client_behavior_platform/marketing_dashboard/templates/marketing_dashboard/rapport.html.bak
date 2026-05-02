@@ -1,0 +1,1040 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_head %}
+<!-- Alpine.js pour l'interactivité -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- Animate.css pour les animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #ff6600;
+        --primary-light: #fff0e6;
+        --primary-dark: #cc5200;
+        --secondary-color: #4d4d4d;
+        --success-color: #00a86b;
+        --danger-color: #e63946;
+        --warning-color: #ff9f1c;
+        --info-color: #e6a293;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --gray-100: #f1f1f1;
+        --gray-200: #e0e0e0;
+        --gray-300: #c0c0c0;
+        --gray-400: #999999;
+        --gray-500: #666666;
+        --border-color: #e0e0e0;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+        background-image: url('/static/images/bk.png');
+        color: #1f2937;
+        line-height: 1.6;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .report-header {
+        background: linear-gradient(135deg, #ff8533, #cc5200);
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .report-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.1) 0%, transparent 25%);
+        pointer-events: none;
+    }
+    
+    .report-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin: 0 0 0.75rem 0;
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        display: inline-block;
+    }
+    
+    .report-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 2px;
+    }
+    
+    .report-subtitle {
+        font-size: 1.125rem;
+        opacity: 0.95;
+        font-weight: 400;
+        max-width: 800px;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .client-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .meta-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.875rem 1.25rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .meta-item:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .meta-item i {
+        font-size: 1.25rem;
+    }
+    
+    .section {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: var(--card-shadow);
+        padding: 1.75rem;
+        margin-bottom: 1.75rem;
+        height: auto;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    
+    .section-title {
+        font-size: 1.375rem;
+        font-weight: 600;
+        margin: 0 0 1.75rem 0;
+        padding-bottom: 0.875rem;
+        border-bottom: 2px solid var(--primary-color);
+        display: flex;
+        align-items: center;
+        color: var(--dark-color);
+        position: relative;
+    }
+    
+    .section-title i {
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), transparent);
+    }
+    
+    .section-title i {
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+        transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--primary-color);
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+    
+    .chart-container {
+        margin-bottom: 1.5rem;
+        height: auto;
+    }
+    
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .analysis-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-primary {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+    
+    .badge-success {
+        background-color: #ecfdf5;
+        color: var(--success-color);
+    }
+    
+    .badge-warning {
+        background-color: #fef3c7;
+        color: var(--warning-color);
+    }
+    
+    .badge-danger {
+        background-color: #fee2e2;
+        color: var(--danger-color);
+    }
+    
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .recommendation-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .recommendation-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-item {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: all 0.5s ease;
+        z-index: -1;
+    }
+    
+    .btn:hover::before {
+        width: 100%;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #ff8533, #ff6600);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #ff6600, #e65c00);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(255, 102, 0, 0.4);
+    }
+    
+    .btn-outline {
+        background-color: white;
+        border: 1px solid var(--gray-300);
+        color: var(--gray-700);
+    }
+    
+    .btn-outline:hover {
+        background-color: var(--gray-100);
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .analysis-grid, .recommendations-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8" x-data="{ activeTab: 'overview' }">
+    <!-- Header Section -->
+    <div class="report-header">
+        <h1 class="report-title">{{ rapport.titre|default:"Analyse Marketing Client" }}</h1>
+        <p class="report-subtitle">Rapport détaillé du comportement et des opportunités marketing</p>
+        <p class="text-white text-opacity-90 mb-4">Période d'analyse : {{ rapport.periode_analyse|default:"Non spécifiée" }}</p>
+        
+        <div class="client-meta">
+            <div class="meta-item">
+                <i class="fas fa-mobile-alt"></i>
+                <div>
+                    <div class="text-xs text-white text-opacity-70">ID Client</div>
+                    <div class="font-medium">{{ rapport.client_id|default:msisdn|default:"Non disponible" }}</div>
+                </div>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-user-tag"></i>
+                <div>
+                    <div class="text-xs text-white text-opacity-70">Type de client</div>
+                    <div class="font-medium">{{ rapport.type_client|default:"Inconnu" }}</div>
+                </div>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-crown"></i>
+                <div>
+                    <div class="text-xs text-white text-opacity-70">Profil MaxIt</div>
+                    <div class="font-medium">{{ rapport.profil_maxit|default:"Non" }}</div>
+                </div>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-tag"></i>
+                <span>Statut: {{ rapport.statut_churn }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-tag"></i>
+                <span>Programme: {{ rapport.type_programme }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-gray-200 mb-6">
+        <button @click="activeTab = 'overview'" 
+                :class="activeTab === 'overview' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-home mr-2"></i> Vue d'ensemble
+        </button>
+        <button @click="activeTab = 'behavior'" 
+                :class="activeTab === 'behavior' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-chart-line mr-2"></i> Comportement
+        </button>
+        <button @click="activeTab = 'consumption'" 
+                :class="activeTab === 'consumption' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-chart-pie mr-2"></i> Consommation
+        </button>
+        <button @click="activeTab = 'recommendations'" 
+                :class="activeTab === 'recommendations' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-lightbulb mr-2"></i> Recommandations
+        </button>
+    </div>
+    
+    <!-- Overview Tab -->
+    <div x-show="activeTab === 'overview'" class="animate__animated animate__fadeIn">
+        <!-- Client Profile -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-user"></i> Profil Client
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="flex justify-between py-2 border-b">
+                        <span class="text-gray-600">ID Client:</span>
+                        <span class="font-medium">{{ rapport.client_id }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b">
+                        <span class="text-gray-600">Type de client:</span>
+                        <span class="font-medium">{{ rapport.type_client|default:"N/A" }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b">
+                        <span class="text-gray-600">Profil MaxIt:</span>
+                        <span class="font-medium">{{ rapport.profil_maxit|default:"Non" }}</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-between py-2 border-b">
+                        <span class="text-gray-600">Niveau d'engagement:</span>
+                        <span class="font-medium">{{ rapport.niveau_engagement|default:"N/A" }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b">
+                        <span class="text-gray-600">Rentabilité:</span>
+                        <span class="font-medium">{{ rapport.rentabilite|default:"N/A" }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b">
+                        <span class="text-gray-600">Période d'analyse:</span>
+                        <span class="font-medium">{{ rapport.periode_analyse|default:"N/A" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Stats -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i> Statistiques Clés
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.nb_achats|default:"0" }}
+                    </div>
+                    <div class="stat-label">Achats</div>
+                    <div class="text-sm mt-1">
+                        {{ montant_total_achat|divisible_by:1000|default:"0" }} DT
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.nb_recharges|default:"0" }}
+                    </div>
+                    <div class="stat-label">Recharges</div>
+                    <div class="text-sm mt-1">
+                        {{ montant_total_recharge|divisible_by:1000|default:"0" }} DT
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.participations_jeux|default:"0" }}
+                    </div>
+                    <div class="stat-label">Participations jeux</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.donnees_consommees|default:"0" }}
+                    </div>
+                    <div class="stat-label">Données (Mo)</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Engagement & Rentability -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i> Engagement & Rentabilité
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4 flex items-center">
+                        <span class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
+                            <i class="fas fa-bolt text-orange-500"></i>
+                        </span>
+                        Niveau d'Engagement
+                    </h3>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="w-full h-48 relative">
+                            <canvas id="engagementGauge"></canvas>
+                        </div>
+                        
+                        <div>
+                            <div class="text-2xl font-bold mb-1">
+                                {{ rapport.engagement_score|default:"0" }} pts
+                            </div>
+                            <span class="badge 
+                                {% if rapport.classe_engagement == 'high' %}badge-success
+                                {% elif rapport.classe_engagement == 'medium' %}badge-warning
+                                {% else %}badge-danger{% endif %}">
+                                {{ rapport.niveau_engagement|default:"N/A" }}
+                            </span>
+                            
+                            <div class="mt-4 text-sm">
+                                <div class="flex items-center mb-1">
+                                    <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                                    <span>Très engagé: >250 pts</span>
+                                </div>
+                                <div class="flex items-center mb-1">
+                                    <span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
+                                    <span>Moyen: 150-250 pts</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                                    <span>Faible: <150 pts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4 flex items-center">
+                        <span class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                            <i class="fas fa-coins text-green-500"></i>
+                        </span>
+                        Rentabilité Client
+                    </h3>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="w-full h-48 relative">
+                            <canvas id="rentabilityGauge"></canvas>
+                        </div>
+                        
+                        <div>
+                            <div class="text-2xl font-bold mb-1">
+                                {{ rapport.rentabilite|default:"N/A" }}
+                            </div>
+                            <span class="badge 
+                                {% if rapport.rentabilite_classe == 'high' %}badge-success
+                                {% elif rapport.rentabilite_classe == 'medium' %}badge-warning
+                                {% else %}badge-danger{% endif %}">
+                                Segment: {{ rapport.segment_rentabilite|default:"Standard" }}
+                            </span>
+                            
+                            <div class="mt-4 text-sm">
+                                <p class="mb-2"><strong>Dépenses totales:</strong> 
+                                    {{ rapport.montant_total_achat|divisible_by:1000|floatformat:2 }} DT
+                                </p>
+                                <p><strong>Recharges totales:</strong> 
+                                    {{ rapport.montant_total_recharge|divisible_by:1000|floatformat:2 }} DT
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Client Profile -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-user"></i> Profil Client
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Détails du Profil</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Type de client:</span>
+                            <span class="font-medium">{{ rapport.type_client|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Profil MaxIt:</span>
+                            <span>
+                                <span class="badge 
+                                    {% if rapport.profil_maxit == 'Oui' %}badge-success
+                                    {% else %}badge-warning{% endif %}">
+                                    {{ rapport.profil_maxit|default:"Non" }}
+                                </span>
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Statut Churn:</span>
+                            <span>
+                                <span class="badge 
+                                    {% if rapport.statut_churn == 'Churn' %}badge-danger
+                                    {% else %}badge-success{% endif %}">
+                                    {{ rapport.statut_churn|default:"N/A" }}
+                                </span>
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Type d'usage:</span>
+                            <span class="font-medium">{{ rapport.type_usage|default:"N/A" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Activité Récente</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Dernier achat:</span>
+                            <span class="font-medium">{{ rapport.dernier_achat|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Dernière recharge:</span>
+                            <span class="font-medium">{{ rapport.derniere_recharge|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Canal d'achat:</span>
+                            <span class="font-medium">{{ rapport.canal_achat|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Canal recharge:</span>
+                            <span class="font-medium">{{ rapport.canal_recharge|default:"N/A" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Behavior Tab -->
+    <div x-show="activeTab === 'behavior'" class="animate__animated animate__fadeIn">
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i> Comportement Transactionnel
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.nb_achats|default:"0" }}
+                    </div>
+                    <div class="stat-label">Nombre d'achats</div>
+                    <div class="text-sm mt-1">
+                        {{ montant_total_achat|divisible_by:1000|default:"0" }} DT
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.nb_recharges|default:"0" }}
+                    </div>
+                    <div class="stat-label">Nombre de recharges</div>
+                    <div class="text-sm mt-1">
+                        {{ montant_total_recharge|divisible_by:1000|default:"0" }} DT
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.participations_jeux|default:"0" }}
+                    </div>
+                    <div class="stat-label">Participations jeux</div>
+                </div>
+            </div>
+            
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Canaux Préférés</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Canal d'achat:</span>
+                            <span class="font-medium">{{ rapport.canal_achat|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Canal de recharge:</span>
+                            <span class="font-medium">{{ rapport.canal_recharge|default:"N/A" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Analyse des Achats</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Panier moyen:</span>
+                            <span class="font-medium">
+                                {% widthratio rapport.montant_achats|divisible_by:1000|default:0 rapport.nb_achats|default:1 1 %} DT
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Fréquence d'achat:</span>
+                            <span class="font-medium">
+                                {% widthratio rapport.nb_achats|default:0 30 1 %} /mois
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if rapport.profil_maxit == 'Oui' %}
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-brain"></i> Activité MaxIt
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Utilisation du Programme</h3>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-3xl font-bold">
+                                {{ rapport.actions_maxit|default:"0" }}/{{ rapport.total_actions|default:"0" }}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-1">
+                                Actions réalisées
+                            </div>
+                        </div>
+                        
+                        <div class="text-right">
+                            <div class="text-2xl font-bold">
+                                {{ rapport.pourcentage_maxit|default:"0%" }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                Taux d'utilisation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Statut MaxIt</h3>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <span class="badge badge-primary">
+                                {{ rapport.statut_maxit|default:"N/A" }}
+                            </span>
+                        </div>
+                        
+                        <div class="text-sm text-gray-600">
+                            <p>Ce client utilise activement le programme MaxIt avec un taux de participation de {{ rapport.pourcentage_maxit|default:"0%" }}.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Consumption Tab -->
+    <div x-show="activeTab === 'consumption'" class="animate__animated animate__fadeIn">
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-pie"></i> Analyse de Consommation
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.donnees_consommees|default:"0" }}
+                    </div>
+                    <div class="stat-label">Données (Mo)</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.voix_utilisee|default:"0" }}
+                    </div>
+                    <div class="stat-label">Voix (min)</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-sms"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.sms|default:"0" }}
+                    </div>
+                    <div class="stat-label">SMS</div>
+                </div>
+            </div>
+            
+            <!-- Ajout du canvas pour le graphique de consommation -->
+            <div class="mt-8">
+                <div class="chart-container" style="position: relative; height: 300px;">
+                    <canvas id="consumptionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        {% if rapport.options_achetees %}
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-box-open"></i> Options Achetées
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for option in rapport.options_achetees %}
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-2">{{ option.nom }}</h3>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Quantité:</span>
+                        <span class="font-medium">{{ option.quantite }} fois</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Recommendations Tab -->
+    <div x-show="activeTab === 'recommendations'" class="animate__animated animate__fadeIn">
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-lightbulb"></i> Recommandations Marketing
+            </h2>
+            
+            {% if rapport.recommandations %}
+            <div class="recommendations-grid">
+                {% for reco in rapport.recommandations %}
+                <div class="recommendation-card">
+                    <h3>Recommandation #{{ forloop.counter }}</h3>
+                    <p>{{ reco }}</p>
+                    
+                    {% if forloop.first %}
+                    <div class="mt-4">
+                        <span class="badge badge-success">
+                            <i class="fas fa-star mr-1"></i> Prioritaire
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-info-circle text-3xl mb-2"></i>
+                <p>Aucune recommandation disponible pour ce client.</p>
+            </div>
+            {% endif %}
+            
+            <div class="mt-8">
+                <h3 class="font-semibold mb-4">Plan d'Action Marketing</h3>
+                
+                <div class="space-y-4">
+                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 pt-1">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-envelope text-blue-500"></i>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-medium">Campagne Email</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    Envoyer une offre personnalisée basée sur le profil d'achat du client.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 pt-1">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-mobile-alt text-green-500"></i>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-medium">Notification Push</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    Notifier le client des nouvelles offres correspondant à ses habitudes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if rapport.statut_churn == 'Churn' %}
+                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 pt-1">
+                                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <i class="fas fa-gift text-purple-500"></i>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-medium">Offre de Fidélisation</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    Proposer une offre exclusive pour retenir ce client à risque.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer Actions -->
+    <div class="mt-8 flex flex-col sm:flex-row justify-between items-center">
+        <div class="text-sm text-gray-500 mb-4 sm:mb-0">
+            <i class="far fa-clock mr-1"></i> Généré le {{ date_generation }}
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print mr-1"></i> Imprimer
+            </button>
+            <button name="action" class="btn btn-primary" value="recommandation" onclick='window.location.href = "{% url "marketing_dashboard:vue_recommandation_client" %}"'>  
+                <i class="fas fa-lightbulb mr-1"></i> Voir les Recommandations
+            </button>
+            
+            <a href="{% url 'marketing_dashboard:formulaire_client' %}" class="btn btn-outline">
+                <i class="fas fa-redo mr-1"></i> Nouvelle analyse
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script de débogage pour les graphiques
+document.addEventListener('alpine:init', () => {
+    console.log('Alpine.js est initialisé');
+    
+    // Vérifier si Chart.js est chargé
+    if (typeof Chart === 'undefined') {
+        console.error('Erreur: Chart.js n\'est pas chargé');
+    } else {
+        console.log('Chart.js est chargé avec succès');
+    }
+    
+    // Vérifier si les éléments canvas existent
+    const canvasIds = ['engagementGauge', 'rentabilityGauge', 'consumptionChart'];
+    canvasIds.forEach(id => {
+        const element = document.getElementById(id);
+        console.log(`Élément ${id}:`, element ? 'Trouvé' : 'Non trouvé');
+    });
+});
+
+// S'assurer que les graphiques sont réinitialisés lors du changement d'onglet
+document.addEventListener('alpine:initialized', () => {
+    console.log('Alpine.js est complètement initialisé');
+    
+    // Réinitialiser les graphiques après un court délai pour s'assurer que le DOM est prêt
+    setTimeout(() => {
+        const alpineComponent = document.querySelector('[x-data]').__x.$data;
+        if (alpineComponent && typeof alpineComponent.initCharts === 'function') {
+            console.log('Initialisation des graphiques...');
+            alpineComponent.initCharts();
+        }
+    }, 500);
+});
+</script>
+{% endblock %}

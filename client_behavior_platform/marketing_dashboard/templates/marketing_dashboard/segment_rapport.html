@@ -1,0 +1,1233 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_head %}
+<!-- Chart.js pour les graphiques -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Alpine.js pour l'interactivité -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- ApexCharts pour des graphiques avancés -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<!-- Animate.css pour les animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* Styles de base (identique au template client) */
+    :root {
+        --primary-color: #ff6600;
+        --primary-light: #fff0e6;
+        --primary-dark: #cc5200;
+        --secondary-color: #4d4d4d;
+        --success-color: #00a86b;
+        --danger-color: #e63946;
+        --warning-color: #ff9f1c;
+        --info-color: #e6a293;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --gray-100: #f1f1f1;
+        --gray-200: #e0e0e0;
+        --gray-300: #c0c0c0;
+        --gray-400: #999999;
+        --gray-500: #666666;
+        --border-color: #e0e0e0;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+        background-image: url('/static/images/bk.png');
+        color: #1f2937;
+        line-height: 1.6;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Styles spécifiques au rapport segment */
+    .segment-header {
+        background: linear-gradient(135deg, #ff6600, #ff6600);
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .segment-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.1) 0%, transparent 25%);
+        pointer-events: none;
+    }
+    
+    .segment-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin: 0 0 0.75rem 0;
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        display: inline-block;
+    }
+    
+    .segment-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 2px;
+    }
+    
+    .segment-subtitle {
+        font-size: 1.125rem;
+        opacity: 0.95;
+        font-weight: 400;
+        max-width: 800px;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .segment-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .meta-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.875rem 1.25rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .meta-item:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .meta-item i {
+        font-size: 1.25rem;
+    }
+    
+    /* Styles réutilisés du template client */
+    .section {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: var(--card-shadow);
+        padding: 1.75rem;
+        margin-bottom: 1.75rem;
+        height: auto;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    
+    .section-title {
+        font-size: 1.375rem;
+        font-weight: 600;
+        margin: 0 0 1.75rem 0;
+        padding-bottom: 0.875rem;
+        border-bottom: 2px solid var(--primary-color);
+        display: flex;
+        align-items: center;
+        color: var(--dark-color);
+        position: relative;
+    }
+    
+    .section-title i {
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), transparent);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+        transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--primary-color);
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+    
+    /* Styles pour les cartes de graphiques */
+    .chart-card {
+        @apply bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chart-header {
+        @apply px-6 py-4 border-b border-gray-100;
+    }
+    
+    .chart-title {
+        @apply text-lg font-semibold text-gray-800 flex items-center;
+    }
+    
+    .chart-body {
+        @apply p-2 flex-1 flex items-center justify-center;
+        min-height: 300px;
+    }
+    
+    .chart-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+    
+    /* Amélioration des cartes d'analyse */
+    .analysis-card {
+        @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md;
+        height: 100%;
+    }
+    
+    .analysis-card h3 {
+        @apply font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center;
+    }
+    
+    .analysis-card h3 i {
+        @apply mr-2 text-indigo-500;
+    }
+    
+    /* Amélioration des onglets */
+    .tab-button {
+        @apply px-4 py-2 font-medium text-sm rounded-lg transition-colors duration-200;
+    }
+    
+    .tab-button.active {
+        @apply bg-indigo-100 text-indigo-700;
+    }
+    
+    .tab-button:not(.active) {
+        @apply text-gray-500 hover:bg-gray-100;
+    }
+    
+    /* Amélioration des tooltips */
+    .tooltip-custom {
+        @apply bg-gray-900 text-white text-xs rounded py-1 px-2;
+        position: absolute;
+        z-index: 100;
+        pointer-events: none;
+        transform: translate(-50%, -100%);
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    /* Animation de chargement */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    .chart-container {
+        margin-bottom: 1.5rem;
+        height: auto;
+    }
+    
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .analysis-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-primary {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+    
+    .badge-success {
+        background-color: #ecfdf5;
+        color: var(--success-color);
+    }
+    
+    .badge-warning {
+        background-color: #fef3c7;
+        color: var(--warning-color);
+    }
+    
+    .badge-danger {
+        background-color: #fee2e2;
+        color: var(--danger-color);
+    }
+    
+    .badge-info {
+        background-color: #e0f2fe;
+        color: #817f7e;
+    }
+    
+    .criteria-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .criteria-item {
+        background: #fafafa;
+        opacity: 0.3;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        color: #f9f8f6;
+    }
+    
+    .criteria-item i {
+        margin-right: 0.5rem;
+        color: #a8a7a6;
+    }
+    
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .recommendation-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .recommendation-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background-color: rgba(238, 96, 52, 0.1);
+        transition: all 0.5s ease;
+        z-index: -1;
+    }
+    
+    .btn:hover::before {
+        width: 100%;
+    }
+    
+    .btn-primary {
+        background: #ff6600 !important;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #ff6600, #ff6600);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(243, 106, 75, 0.4);
+    }
+    
+    .btn-outline {
+        background-color: white;
+        border: 1px solid var(--gray-300);
+        color: var(--gray-700);
+    }
+    
+    .btn-outline:hover {
+        background-color: #ff6600;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .analysis-grid, .recommendations-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8" x-data="{
+    activeTab: 'overview',
+    tauxMaxit: {{ rapport.taux_maxit_calc|default:0 }},
+    rentabilityClass: '{{ rapport.rentabilite_distribution|get_dominant_key|default:"medium" }}',
+    copiedId: null,
+    
+    copyToClipboard(button, text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const messageId = button.getAttribute('data-message-id');
+            this.copiedId = messageId;
+            // Réinitialiser après 2 secondes
+            setTimeout(() => {
+                this.copiedId = null;
+            }, 2000);
+        }).catch(err => {
+            console.error('Erreur lors de la copie :', err);
+            // Fallback pour les navigateurs plus anciens
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const messageId = button.getAttribute('data-message-id');
+                this.copiedId = messageId;
+                setTimeout(() => {
+                    this.copiedId = null;
+                }, 2000);
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+            }
+            document.body.removeChild(textarea);
+        });
+    },
+    
+    init() {
+        // Initialisation des graphiques après un court délai
+        this.$nextTick(() => {
+            setTimeout(() => this.initCharts(), 300);
+        });
+        this.$nextTick(() => {
+            this.initCharts();
+        });
+    },
+    initCharts() {
+        // Couleurs cohérentes pour tous les graphiques
+        const chartColors = {
+            red: 'rgba(239, 68, 68, 0.8)',
+            yellow: 'rgba(234, 179, 8, 0.8)',
+            green: 'rgba(16, 185, 129, 0.8)',
+            blue: 'rgba(59, 130, 246, 0.8)',
+            indigo: 'rgba(79, 70, 229, 0.8)',
+            purple: 'rgba(139, 92, 246, 0.8)'
+        };
+
+        // Options communes pour tous les graphiques
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { size: 13, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    padding: 12,
+                    cornerRadius: 6,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== undefined) {
+                                label += context.parsed.y.toLocaleString();
+                            } else if (context.raw !== undefined) {
+                                label += context.raw.toLocaleString();
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        };
+
+        // Chart 3: Consumption Comparison
+        if (document.getElementById('consumptionChart')) {
+            const ctx = document.getElementById('consumptionChart').getContext('2d');
+            const consumptionData = [
+                {{ rapport.conso_data_moyenne_calc|default:0 }},
+                {{ rapport.conso_voix_moyenne_calc|default:0 }},
+                {{ rapport.conso_sms_moyenne_calc|default:0 }}
+            ];
+            
+            // Normalize data for better visualization
+            const maxValue = Math.max(...consumptionData) * 1.2 || 1; // Avoid division by zero
+            const normalizedData = consumptionData.map(value => (value / maxValue) * 100);
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Données (Mo)', 'Voix (min)', 'SMS'],
+                    datasets: [{
+                        label: 'Consommation Moyenne',
+                        data: consumptionData,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: chartColors.indigo,
+                        pointBackgroundColor: chartColors.indigo,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: chartColors.indigo,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            ...commonOptions.plugins.title,
+                            text: 'Profil de Consommation Moyen',
+                            font: { size: 16, weight: '600' },
+                            padding: { bottom: 20 }
+                        },
+                        tooltip: {
+                            ...commonOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.raw;
+                                    let unit = '';
+                                    
+                                    switch(context.label) {
+                                        case 'Données (Mo)':
+                                            unit = ' Mo';
+                                            break;
+                                        case 'Voix (min)':
+                                            unit = ' min';
+                                            break;
+                                        case 'SMS':
+                                            unit = ' SMS';
+                                            break;
+                                    }
+                                    
+                                    return `${label}: ${value.toLocaleString()}${unit}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            angleLines: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: {
+                                display: false,
+                                stepSize: 20,
+                                backdropColor: 'transparent'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#4B5563'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            borderWidth: 2,
+                            tension: 0.1
+                        }
+                    },
+                    layout: {
+                        padding: { top: 20, right: 20, bottom: 20, left: 20 }
+                    }
+                }
+            });
+        }
+        
+        // Chart 1 & 2: Engagement & Rentability Distribution
+        // Supprimés
+    },
+    get engagementData() {
+        try {
+            return JSON.parse('{{ rapport.engagement_distribution|default:"{}"|escapejs }}');
+        } catch (e) {
+            console.error('Error parsing engagement distribution:', e);
+            return {};
+        }
+    },
+    get rentabilityData() {
+        try {
+            return JSON.parse('{{ rapport.rentabilite_distribution|default:"{}"|escapejs }}');
+        } catch (e) {
+            console.error('Error parsing rentability distribution:', e);
+            return {};
+        }
+    }
+}">
+    <!-- Header Section -->
+    <div class="segment-header">
+        <h1 class="segment-title">Analyse Marketing Segment</h1>
+        <p class="segment-subtitle">Rapport détaillé du comportement et des opportunités pour le segment</p>
+        
+        <div class="segment-meta">
+            <div class="meta-item">
+                <i class="fas fa-users"></i>
+                <span>ID Segment: {{ rapport.segment_id|truncatechars:20 }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <span>Période: {{ periode_analyse }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-tag"></i>
+                <span>Type: {{ rapport.type_segment|default:"N/A" }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-user-friends"></i>
+                <span>Clients: {{ rapport.nb_clients|default:"0" }}</span>
+            </div>
+        </div>
+        
+       
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-gray-200 mb-6">
+        <button @click="activeTab = 'overview'" 
+                :class="activeTab === 'overview' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-home mr-2"></i> Vue d'ensemble
+        </button>
+        <button @click="activeTab = 'behavior'" 
+                :class="activeTab === 'behavior' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-chart-line mr-2"></i> Comportement
+        </button>
+        <button @click="activeTab = 'consumption'" 
+                :class="activeTab === 'consumption' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-chart-pie mr-2"></i> Consommation
+        </button>
+        <button @click="activeTab = 'recommendations'" 
+                :class="activeTab === 'recommendations' ? 'border-b-2 border-primary-color text-primary-color font-medium' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2">
+            <i class="fas fa-lightbulb mr-2"></i> Recommandations
+        </button>
+    </div>
+    
+    <!-- Overview Tab -->
+    <div x-show="activeTab === 'overview'" class="animate__animated animate__fadeIn">
+        <!-- Key Stats -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i> Statistiques Clés
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.total_achats_calc|default:"0"|intcomma }}
+                    </div>
+                    <div class="stat-label">Total Achats</div>
+                   
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.total_recharges_calc|default:"0"|intcomma }}
+                    </div>
+                    <div class="stat-label">Total Recharges</div>
+                 
+                </div>
+                
+               
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.freq_achat|default:"0"|floatformat:1 }}
+                    </div>
+                    <div class="stat-label">Fréq. Achat</div>
+                   
+                </div>
+            </div>
+        </div>
+        
+        <!-- Engagement & Rentability -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i> Engagement & Rentabilité
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4 flex items-center">
+                        <span class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
+                            <i class="fas fa-bolt text-orange-500"></i>
+                        </span>
+                        Niveau d'Engagement
+                    </h3>
+                    
+                    <div class="space-y-4">
+                       
+                        
+                        <div>
+                            <h4 class="font-medium text-gray-700 mb-2">Fréquence d'Achat</h4>
+                            <p class="text-gray-800">
+                                <span class="font-medium">{{ rapport.freq_achat|default:"0"|floatformat:1}} par client</span>
+                                <span class="text-sm text-gray-500 ml-2">
+                                    ({{ rapport.nb_achats_moyen|default:0|floatformat:1 }} achats/mois)
+                                </span>
+                            </p>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4 flex items-center">
+                        <span class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                            <i class="fas fa-coins text-green-500"></i>
+                        </span>
+                        Analyse de Rentabilité
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <h4 class="font-medium text-green-800 mb-2">Niveau de Rentabilité</h4>
+                            <p class="text-2xl font-bold text-green-600">
+                                {% if rapport.rentabilite_classe == 'Actif' %}
+Actif                                
+{% elif rapport.rentabilite_classe == 'Passif' %}
+Passif                                
+                                {% endif %}
+                            </p>
+                            <p class="text-sm text-gray-600 mt-1">Basé sur la marge bénéficiaire</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-gray-700 mb-2">Panier Moyen</h4>
+                            <p class="text-gray-800">
+                                {{ rapport.panier_moyen_calc|div_by:1000|floatformat:2 }} DT
+                                <span class="text-sm text-gray-500 ml-2">par transaction</span>
+                            </p>
+                        </div>
+                        
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Segment Profile -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-users"></i> Profil du Segment
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Détails du Segment</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Type de segment:</span>
+                            <span class="font-medium">{{ rapport.type_segment|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Clientèle majoritaire:</span>
+                            <span class="font-medium">{{ rapport.type_clientele|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Clients MaxIt:</span>
+                            <span>
+                                <span class="badge badge-primary">
+                                    {{ rapport.nb_maxit|default:"0" }} ({{ rapport.taux_maxit|default:"0%" }})
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Répartition des Types de Clients</h3>
+                    
+                    <div class="space-y-3">
+                        {% if rapport.types_clients %}
+                            {% for type in rapport.types_clients %}
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">{{ type.type|default:"Type inconnu" }}:</span>
+                                <span class="font-medium">
+                                    {{ type.count|default:0|intcomma }} 
+                                    
+                                </span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-gray-500 italic">Aucune donnée de type de client disponible</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Behavior Tab -->
+    <div x-show="activeTab === 'behavior'" class="animate__animated animate__fadeIn">
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-exchange-alt"></i> Comportement Transactionnel
+            </h2>
+            
+            
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Canaux Préférés</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Canal d'achat principal:</span>
+                            <span class="font-medium">{{ rapport.canal_achat_principal|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Canal de recharge principal:</span>
+                            <span class="font-medium">{{ rapport.canal_recharge_principal|default:"N/A" }}</span>
+                        </div>
+                        
+                        {% if rapport.repartition_canaux %}
+                        <div class="mt-6">
+                            <h4 class="font-medium mb-4">Répartition des canaux d'achat:</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             
+                                <!-- Légende et détails -->
+                                <div class="space-y-3">
+                                    {% for canal in rapport.repartition_canaux %}
+                                    <div class="flex items-center p-3 bg-white rounded-lg shadow-sm hover:shadow transition-shadow">
+                                        <span class="w-32 font-medium text-gray-700">{{ canal.canal }}:</span>
+                                        <div class="flex-1 bg-gray-100 rounded-full h-3 mx-3">
+                                            <div class="h-3 rounded-full" 
+                                                 style="width: {{ canal.percentage }}%; 
+                                                        background-color: {% cycle 'rgba(79, 70, 229, 0.8)' 'rgba(16, 185, 129, 0.8)' 'rgba(245, 158, 11, 0.8)' 'rgba(107, 114, 128, 0.8)' %}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    
+                                    <div class="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100">
+                                        <p class="text-sm text-orange-700">
+                                            <i class="fas fa-info-circle mr-1"></i>
+                                            Cette visualisation montre la répartition des canaux d'achat utilisés par les clients de ce segment.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-4">Analyse des Transactions</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total achats:</span>
+                            <span class="font-medium">{{ rapport.total_achats|default:"0"|intcomma }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Montant total achats:</span>
+                            <span class="font-medium">{{ rapport.montant_total_achats|div_by:1000|default:"0"|intcomma }} DT</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total recharges:</span>
+                            <span class="font-medium">{{ rapport.total_recharges|default:"0"|intcomma }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Montant total recharges:</span>
+                            <span class="font-medium">{{ rapport.montant_total_recharges|div_by:1000|default:"0"|intcomma }} DT</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Consumption Tab -->
+    <div x-show="activeTab === 'consumption'" class="animate__animated animate__fadeIn">
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-pie"></i> Analyse de Consommation
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.conso_data_moyenne|default:"0"|intcomma }}
+                    </div>
+                    <div class="stat-label">Data Moy (Mo)</div>
+                  
+                 
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.conso_voix_moyenne|default:"0"|intcomma }}
+                    </div>
+                    <div class="stat-label">Voix Moy (min)</div>
+                   
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-sms"></i>
+                    </div>
+                    <div class="stat-value">
+                        {{ rapport.conso_sms_moyenne|default:"0"|intcomma }}
+                    </div>
+                    <div class="stat-label">SMS Moy</div>
+                   
+                </div>
+            </div>
+          
+        </div>
+        
+        {% if rapport.options_utilisees %}
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-box-open"></i> Options les Plus Utilisées
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for option in rapport.options_utilisees %}
+                <div class="analysis-card">
+                    <h3 class="font-semibold mb-2">{{ option.nom }}</h3>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Utilisations:</span>
+                        <span class="font-medium">{{ option.count|intcomma }} ({{ option.percentage|floatformat:1 }}%)</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Recommendations Tab -->
+    
+    
+    
+    <!-- Footer Actions -->
+    <div class="mt-8 flex flex-col sm:flex-row justify-between items-center">
+        <div class="text-sm text-gray-500 mb-4 sm:mb-0">
+            <i class="far fa-clock mr-1"></i> Généré le {{ date_generation }}
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print mr-1"></i> Imprimer
+            </button>
+            <button name="action" class="btn btn-primary" value="recommandations" onclick='window.location.href = "{% url "marketing_dashboard:vue_recommandations_segment" %}"'>  
+                <i class="fas fa-lightbulb mr-1"></i> Voir les Recommandations
+            </button>
+            
+            <button name="action" class="btn btn-primary" value="messages" onclick='window.location.href = "{% url "marketing_dashboard:vue_messages_segment" %}"'>
+                <i class="fas fa-envelope mr-1"></i> Voir les Messages
+            </button>
+            
+            <a href="{% url 'marketing_dashboard:vue_filtres_segment' %}" class="btn btn-outline">
+                <i class="fas fa-redo mr-1"></i> Nouvelle analyse
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Fonction utilitaire pour formater les nombres
+function formatNumber(num) {
+    return num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") : '0';
+}
+
+// Fonction d'initialisation des graphiques
+function initCharts() {
+    try {
+        // Graphique de répartition des canaux d'achat
+        const canalCtx = document.getElementById('canalChart');
+        if (canalCtx) {
+            console.log('Initialisation du graphique canalChart');
+            
+            // Récupérer les données de répartition des canaux
+            const repartitionCanaux = {{ rapport.repartition_canaux|default:'[]'|safe }};
+            
+            // Préparer les données pour le graphique
+            const labels = repartitionCanaux && repartitionCanaux.length > 0 ? 
+                repartitionCanaux.map(item => item.canal) : 
+                ['USSD', 'MaxIt', 'API', 'Autres'];
+            
+            const data = repartitionCanaux && repartitionCanaux.length > 0 ? 
+                repartitionCanaux.map(item => item.percentage) : 
+                [0, 0, 0, 100];
+            
+            new Chart(canalCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(107, 114, 128, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(79, 70, 229, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(107, 114, 128, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1.5,
+                    plugins: {
+                        legend: { 
+                            position: 'right',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Répartition des Canaux d\'Achat',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 13,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value}%`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    },
+                    cutout: '60%'
+                }
+            });
+        } else {
+            console.warn('Élément canalChart non trouvé');
+        }
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation des graphiques:', error);
+    }
+}
+
+// Initialisation Alpine.js
+document.addEventListener('alpine:init', () => {
+    console.log('Alpine.js est initialisé');
+    
+    // Vérifier si Chart.js est chargé
+    if (typeof Chart === 'undefined') {
+        console.error('Erreur: Chart.js n\'est pas chargé');
+    } else {
+        console.log('Chart.js est chargé avec succès');
+        // Initialiser les graphiques après un court délai
+        setTimeout(initCharts, 300);
+    }
+    
+    // Vérifier si les éléments canvas existent
+    const canvasIds = ['canalChart', 'engagementChart', 'rentabilityChart', 'consumptionChart'];
+    canvasIds.forEach(id => {
+        const element = document.getElementById(id);
+        console.log(`Élément ${id}:`, element ? 'Trouvé' : 'Non trouvé');
+    });
+});
+
+// Initialisation de secours si Alpine.js n'est pas disponible
+if (typeof Alpine === 'undefined') {
+    console.warn('Alpine.js non détecté, chargement des graphiques en mode direct');
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+    });
+}
+</script>
+
+<style>
+/* Styles pour les conteneurs de graphiques */
+.chart-container {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .chart-container {
+        max-width: 80%;
+    }
+}
+
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+</style>
+{% endblock %}

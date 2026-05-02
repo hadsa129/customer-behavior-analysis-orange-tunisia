@@ -1,0 +1,278 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-width: 100%;
+        margin: 0 auto;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        background: #f8f9fa;
+        height: calc(100vh - 150px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        background:#ff6600;
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .chat-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-image: url('/static/images/avatar.png') ;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        line-height: 1.4;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .agent-message {
+        align-self: flex-start;
+        background: white;
+        border-top-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .category-message {
+        align-self: flex-end;
+        background: #ecd7c2;
+        border-top-right-radius: 4px;
+        margin-left: auto;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #cec9c9;
+        margin-top: 4px;
+        text-align: right;
+    }
+
+    .category-header {
+        font-weight: bold;
+        color: #ff6600;
+        margin-bottom: 5px;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 5px;
+        padding: 10px 15px;
+        background: white;
+        border-radius: 20px;
+        width: fit-content;
+        margin-bottom: 10px;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #ccc;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-5px); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-copy, .btn-share {
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 15px;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-copy {
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .btn-share {
+        background: #fbe0d6;
+        color: #f4b483;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-avatar">
+                <img src="{% static 'images/avatar.png' %}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+            </div>
+            
+            <div>
+                <h3 class="font-semibold text-lg">Assistant Marketing</h3>
+                <p class="text-sm opacity-80">Analyse en cours pour le client {{ client_id }}</p>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages seront injectés ici par JavaScript -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.getElementById('chatMessages');
+    
+    // Fonction pour ajouter un message au chat
+    function addMessage(sender, message, isCategory = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isCategory ? 'category-message' : 'agent-message'}`;
+        
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        messageDiv.innerHTML = `
+            ${isCategory ? `<div class="category-header">${sender}</div>` : ''}
+            <div>${message}</div>
+            <div class="message-time">${time}</div>
+            <div class="action-buttons">
+                <button class="btn-copy" onclick="copyToClipboard('${message.replace(/'/g, "\\'")}', this)">
+                    <i class="far fa-copy"></i> Copier
+                </button>
+                <button class="btn-share" onclick="shareMessage('${message.replace(/'/g, "\\'")}', this)">
+                    <i class="fas fa-share"></i> Partager
+                </button>
+            </div>
+        `;
+        
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Fonction pour montrer l'indicateur de frappe
+    function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Fonction pour cacher l'indicateur de frappe
+    function hideTypingIndicator() {
+        const typing = document.getElementById('typingIndicator');
+        if (typing) typing.remove();
+    }
+
+    // Fonction pour simuler l'écriture d'un message
+    async function typeMessage(sender, message, isCategory = false, delay = 1000) {
+        showTypingIndicator();
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        hideTypingIndicator();
+        
+        addMessage(sender, message, isCategory);
+    }
+
+    // Démarrer la conversation
+    async function startConversation() {
+        // Récupérer les données de la conversation depuis le template
+        const conversation = {{ conversation|safe }};
+        
+        // Afficher chaque message de la conversation
+        for (const message of conversation) {
+            if (message.type === 'category') {
+                await typeMessage(message.title, message.content, true);
+            } else {
+                await typeMessage('agent', message.content);
+            }
+            
+            // Petit délai entre les messages pour un effet plus naturel
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        // Message de conclusion
+        await typeMessage('agent', 
+            "Voilà mes recommandations personnalisées. N'hésitez pas à me demander plus d'informations ! 😊"
+        );
+    }
+
+    // Démarrer la conversation après un court délai
+    setTimeout(startConversation, 1000);
+
+    // Fonction pour copier le texte dans le presse-papier
+    window.copyToClipboard = function(text, button) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Copié !';
+            setTimeout(() => {
+                button.innerHTML = originalText;
+            }, 2000);
+        });
+    };
+
+    // Fonction pour partager un message
+    window.shareMessage = async function(text, button) {
+        try {
+            await navigator.share({
+                title: 'Recommandation Marketing',
+                text: text,
+                url: window.location.href
+            });
+        } catch (err) {
+            console.error('Erreur de partage:', err);
+            alert('Le partage a échoué. Veuillez réessayer.');
+        }
+    };
+});
+</script>
+{% endblock %}

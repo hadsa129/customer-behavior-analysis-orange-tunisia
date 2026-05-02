@@ -1,0 +1,236 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.11.5/css/dataTables.tailwind.min.css" rel="stylesheet">
+<style>
+    .kpi-card { @apply bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all; }
+    .kpi-value { @apply text-3xl font-bold text-blue-600 mb-2; }
+    .chart-container { @apply bg-white rounded-xl shadow-md p-6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto mb-8">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-xl p-8 text-white">
+            <h1 class="text-3xl font-bold mb-2">Tableau de bord Churn</h1>
+            <p>Analyse des clients à risque - Dernier mois: {{ dernier_mois }}</p>
+        </div>
+    </header>
+
+    <!-- KPI Cards -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="kpi-card">
+            <div class="kpi-value">{{ nb_clients|default:"0" }}</div>
+            <div class="text-gray-600">Clients analysés</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value text-orange-500">{{ taux_churn|default:"0%" }}</div>
+            <div class="text-gray-600">Taux de churn</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value text-green-600">{{ taux_maxit|default:"0%" }}</div>
+            <div class="text-gray-600">Clients MaxIt</div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Churn Trend Chart -->
+        <div class="chart-container">
+            <h2 class="text-xl font-semibold mb-4">Évolution du taux de churn</h2>
+            <div class="h-80">
+                <canvas id="churnTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Risk Heatmap -->
+        <div class="chart-container">
+            <h2 class="text-xl font-semibold mb-4">Heatmap des clients à risque</h2>
+            <div class="h-80">
+                <canvas id="riskHeatmap"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Table -->
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 class="text-xl font-semibold text-gray-900">Données des Clients</h2>
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Rechercher..." 
+                               class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff6600] focus:border-[#ff6600] w-full sm:w-64">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <button id="exportBtn" class="px-4 py-2 bg-[#ff6600] text-white rounded-lg font-medium hover:bg-[#e65c00] transition-colors flex items-center gap-2">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Exporter
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table id="clientsTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        {% for column in columns %}
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            {{ column }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for row in sample %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        {% for key, value in row.items %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {% if 'score' in key.lower() %}
+                                <div class="flex items-center">
+                                    <div class="h-2 w-16 bg-gray-200 rounded-full overflow-hidden mr-2">
+                                        <div class="h-full bg-[#ff6600]" style="width: {{ value|default:0 }}%"></div>
+                                    </div>
+                                    <span>{{ value|default:0 }}%</span>
+                                </div>
+                            {% else %}
+                                {{ value|default:"-" }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{{ columns|length }}" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Aucune donnée disponible
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Affichage de <span class="font-medium">1</span> à <span class="font-medium">{{ sample|length }}</span> sur <span class="font-medium">{{ sample|length }}</span> résultats
+            </div>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Précédent
+                </button>
+                <button class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-white bg-[#ff6600] hover:bg-[#e65c00]">
+                    1
+                </button>
+                <button class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Suivant
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.tailwind.min.js"></script>
+
+<script>
+// Initialize DataTable
+$(document).ready(function() {
+    const table = $('#clientsTable').DataTable({
+        pageLength: 10,
+        responsive: true,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json'
+        }
+    });
+
+    // Search input handler
+    $('#searchInput').keyup(function() {
+        table.search(this.value).draw();
+    });
+
+    // Risk filter handler
+    $('#riskFilter').change(function() {
+        const value = $(this).val();
+        table.column(1).search(value, true, false).draw();
+    });
+});
+
+// Churn Trend Chart
+const trendCtx = document.getElementById('churnTrendChart').getContext('2d');
+new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+        datasets: [{
+            label: 'Taux de churn',
+            data: [12, 15, 10, 8, 9, 11, 14, 16, 12, 10, 11, 13],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Taux de churn (%)' }
+            }
+        }
+    }
+});
+
+// Risk Heatmap
+const heatmapCtx = document.getElementById('riskHeatmap').getContext('2d');
+new Chart(heatmapCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+        datasets: [{
+            label: 'Risque élevé',
+            data: [12, 19, 3, 5, 2, 3, 15],
+            backgroundColor: '#ef4444'
+        }, {
+            label: 'Risque moyen',
+            data: [8, 5, 10, 7, 12, 15, 8],
+            backgroundColor: '#f59e0b'
+        }, {
+            label: 'Risque faible',
+            data: [5, 10, 8, 12, 6, 7, 10],
+            backgroundColor: '#10b981'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: { stacked: true },
+            y: { stacked: true }
+        }
+    }
+});
+</script>
+{% endblock %}

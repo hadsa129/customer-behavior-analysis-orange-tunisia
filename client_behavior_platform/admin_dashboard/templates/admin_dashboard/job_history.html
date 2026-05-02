@@ -1,0 +1,62 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">📜 Job History</h1>
+            <a href="{% url 'launch_job' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                Launch New Job
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="px-4 py-2 text-left">Job Name</th>
+                        <th class="px-4 py-2 text-left">Type</th>
+                        <th class="px-4 py-2 text-left">Status</th>
+                        <th class="px-4 py-2 text-left">Started</th>
+                        <th class="px-4 py-2 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr class="border-b {% cycle 'bg-white' 'bg-gray-50' %}">
+                        <td class="px-4 py-2">{{ job.job_name }}</td>
+                        <td class="px-4 py-2">
+                            <span class="px-2 py-1 rounded text-sm bg-gray-100">
+                                {{ job.job_type }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2">
+                            <span class="px-2 py-1 rounded text-sm 
+                                {% if job.status == 'Success' %}bg-green-100 text-green-800
+                                {% elif job.status == 'Failed' %}bg-red-100 text-red-800
+                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ job.status }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2 text-gray-600">{{ job.timestamp|date:"Y-m-d H:i" }}</td>
+                        <td class="px-4 py-2">
+                            <a href="{% url 'job_log_detail' job.job_name %}" 
+                               class="text-blue-600 hover:text-blue-800">
+                                View Logs
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                            No jobs have been run yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

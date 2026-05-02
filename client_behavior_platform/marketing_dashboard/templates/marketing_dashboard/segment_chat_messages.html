@@ -1,0 +1,396 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-width: 100%;
+        margin: 0 auto;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        background: #f8f9fa;
+        height: calc(100vh - 150px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        background: #ff6600;
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .chat-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        line-height: 1.4;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .agent-message {
+        align-self: flex-start;
+        background: white;
+        border-top-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .category-message {
+        align-self: flex-end;
+        background: #ecd7c2;
+        border-top-right-radius: 4px;
+        margin-left: auto;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #cec9c9;
+        margin-top: 4px;
+        text-align: right;
+    }
+
+    .category-header {
+        font-weight: bold;
+        color: #ff6600;
+        margin-bottom: 5px;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 5px;
+        padding: 10px 15px;
+        background: white;
+        border-radius: 20px;
+        width: fit-content;
+        margin-bottom: 10px;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #ccc;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-5px); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-copy, .btn-share {
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 15px;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-copy {
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .btn-share {
+        background: #fbe0d6;
+        color: #f4b483;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-avatar">
+                <img src="{% static 'images/avatar.png' %}" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%;">
+            </div>
+            
+            <div>
+                <h3 class="font-semibold text-lg">Assistant Marketing - Segment</h3>
+                <p class="text-sm opacity-80">Analyse pour {{ segment_nom }} ({{ periode }})</p>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages seront injectés ici par JavaScript -->
+        </div>
+        
+        <div class="action-buttons" style="display: flex; justify-content: center; gap: 12px; padding: 15px 0;">
+            <button class="btn btn-primary" id="export-pdf" 
+                    style="background-color: #ff6600; color: white; border: none; padding: 10px 20px; 
+                           border-radius: 6px; cursor: pointer; transition: all 0.3s ease;
+                           display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-file-pdf"></i>
+                <span>Exporter en PDF</span>
+            </button>
+            <button class="btn btn-outline" id="share-chat"
+                    style="background-color: #ff6600; color: white; border: 1px solid #ff6600; 
+                           padding: 10px 20px; border-radius: 6px; cursor: pointer; 
+                           transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-share-alt"></i>
+                <span>Partager</span>
+            </button>
+        </div>
+        
+        <style>
+            .action-buttons .btn {
+                transition: all 0.3s ease;
+            }
+            .action-buttons .btn:hover {
+                background-color: #1a202c !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            .action-buttons .btn:active {
+                transform: translateY(0);
+            }
+        </style>
+    </div>
+</div>
+
+<!-- Floating action buttons -->
+<div class="floating-buttons">
+    <button class="floating-btn" id="scroll-to-bottom" title="Aller en bas">
+        <i class="fas fa-arrow-down"></i>
+    </button>
+    <button class="floating-btn" id="copy-chat" title="Copier la conversation">
+        <i class="fas fa-copy"></i>
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.getElementById('chatMessages');
+    const scrollToBottomBtn = document.getElementById('scroll-to-bottom');
+    const copyChatBtn = document.getElementById('copy-chat');
+    
+    // Fonction pour ajouter un message au chat
+    function addMessage(sender, message, isCategory = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isCategory ? 'category-message' : 'agent-message'}`;
+        
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        messageDiv.innerHTML = `
+            ${isCategory ? `<div class="category-header">${sender}</div>` : ''}
+            <div>${message}</div>
+            <div class="message-time">${time}</div>
+            <div class="action-buttons">
+                <button class="btn-copy" onclick="copyToClipboard('${message.replace(/'/g, "\\'")}', this)">
+                    <i class="far fa-copy"></i> Copier
+                </button>
+                <button class="btn-share" onclick="shareMessage('${message.replace(/'/g, "\\'")}', this)">
+                    <i class="fas fa-share"></i> Partager
+                </button>
+            </div>
+        `;
+        
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Fonction pour montrer l'indicateur de frappe
+    function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Fonction pour cacher l'indicateur de frappe
+    function hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    // Fonction pour simuler l'écriture d'un message
+    async function typeMessage(sender, message, isCategory = false, delay = 1000) {
+        showTypingIndicator();
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        hideTypingIndicator();
+        
+        addMessage(sender, message, isCategory);
+        
+        return new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Fonction pour copier le texte dans le presse-papier
+    function copyToClipboard(text, button) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Copié!';
+            button.style.background = '#e8f5e9';
+            button.style.color = '#2e7d32';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = '#e9ecef';
+                button.style.color = '#495057';
+            }, 2000);
+        }).catch(err => {
+            console.error('Erreur lors de la copie :', err);
+        });
+    }
+
+    // Fonction pour partager un message
+    function shareMessage(text, button) {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Message de l\'assistant',
+                text: text,
+                url: window.location.href
+            }).then(() => {
+                console.log('Partage réussi');
+            }).catch(err => {
+                console.error('Erreur lors du partage :', err);
+            });
+        } else {
+            // Fallback pour les navigateurs qui ne supportent pas l'API Web Share
+            copyToClipboard(text, button);
+        }
+    }
+
+    // Parse conversation from Django template
+    const conversation = JSON.parse('{{ conversation|escapejs }}');
+    
+    // Function to format message time
+    function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Function to render messages
+    function renderMessages() {
+        chatContainer.innerHTML = '';
+        
+        conversation.forEach(msg => {
+            const messageDiv = document.createElement('div');
+            
+            if (msg.type === 'category') {
+                messageDiv.className = 'message category-message';
+                messageDiv.innerHTML = `
+                    <div class="font-semibold">${msg.title}</div>
+                    <div>${msg.content}</div>
+                `;
+            } else {
+                messageDiv.className = `message agent-message`;
+                
+                // Check if message contains HTML content
+                const hasHtml = /<[a-z][\s\S]*>/i.test(msg.content);
+                
+                messageDiv.innerHTML = `
+                    <div class="${hasHtml ? 'rich-text' : ''}">${msg.content}</div>
+                    <div class="message-time">${msg.timestamp}</div>
+                `;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+        });
+        
+        // Scroll to bottom after rendering
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    // Scroll to bottom of chat
+    function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    // Scroll to bottom button click
+    scrollToBottomBtn.addEventListener('click', scrollToBottom);
+    
+    // Copy chat content
+    copyChatBtn.addEventListener('click', function() {
+        const messages = Array.from(document.querySelectorAll('.message'))
+            .map(el => el.textContent.trim())
+            .join('\n\n');
+        
+        navigator.clipboard.writeText(messages).then(() => {
+            const originalText = copyChatBtn.innerHTML;
+            copyChatBtn.innerHTML = '<i class="fas fa-check"></i>';
+            copyChatBtn.title = 'Copié !';
+            
+            setTimeout(() => {
+                copyChatBtn.innerHTML = originalText;
+                copyChatBtn.title = 'Copier la conversation';
+            }, 2000);
+        });
+    });
+    
+    // Export to PDF
+    document.getElementById('export-pdf').addEventListener('click', function() {
+        // Implement PDF export functionality
+        alert('Export PDF fonctionnalité sera implémentée ici');
+    });
+    
+    // Share chat
+    document.getElementById('share-chat').addEventListener('click', function() {
+        if (navigator.share) {
+            navigator.share({
+                title: `Analyse de segment - ${document.title}`,
+                text: 'Voici l\'analyse de segment générée par notre plateforme marketing',
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            // Fallback for browsers that don't support Web Share API
+            alert('Le partage n\'est pas supporté sur ce navigateur');
+        }
+    });
+    
+    // Initial render
+    renderMessages();
+    
+    // Auto-scroll to bottom on new messages
+    const observer = new MutationObserver(scrollToBottom);
+    observer.observe(chatContainer, { childList: true });
+});
+</script>
+{% endblock %}

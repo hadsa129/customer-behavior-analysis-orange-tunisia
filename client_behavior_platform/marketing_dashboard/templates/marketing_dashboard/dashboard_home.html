@@ -1,0 +1,877 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static humanize chart_filters %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #ff6000;
+        --primary-dark: #cc4d00;
+        --primary-light: #ff8533;
+        --black: #1a1a1a;
+        --gray-900: #2d2d2d;
+        --gray-800: #3d3d3d;
+        --gray-700: #4d4d4d;
+        --gray-600: #6b7280;
+        --gray-500: #9ca3af;
+        --gray-400: #d1d5db;
+        --gray-300: #e5e7eb;
+        --gray-200: #f3f4f6;
+        --gray-100: #f9fafb;
+        --success: #ff6000;
+        --danger: #aeaeae;
+        --warning: #121212;
+        --info: rgb(32, 32, 33);
+        --box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        --border-radius: 8px;
+        --transition: all 0.2s ease;
+    }
+
+    body {
+        background-color: var(--gray-100);
+        color: var(--gray-800);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.5;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    /* Layout */
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .dashboard-header {
+        background: #ff6000;
+        padding: 0.75rem 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .dashboard-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+    }
+
+    .dashboard-content {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 220px;
+        background: white;
+        border-right: 1px solid var(--gray-200);
+        padding: 1rem 0;
+        overflow-y: auto;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .menu-item {
+        margin: 0.25rem 0.75rem;
+    }
+
+    .menu-link {
+        display: flex;
+        align-items: center;
+        padding: 0.6rem 1rem;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: var(--transition);
+        font-size: 0.9rem;
+    }
+
+    .menu-link:hover, .menu-link.active {
+        background-color: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .menu-link i {
+        margin-right: 0.75rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Main Content */
+    .main-content {
+        flex: 1;
+        padding: 1.25rem;
+        overflow-y: auto;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        box-shadow: var(--box-shadow);
+        border-left: 4px solid var(--primary);
+        transition: var(--transition);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .kpi-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .kpi-title {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .kpi-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0.5rem 0;
+    }
+
+    .kpi-change {
+        display: flex;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .kpi-change.positive {
+        color: var(--success);
+    }
+
+    .kpi-change.negative {
+        color: var(--danger);
+    }
+
+    /* Charts */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.25rem;
+        box-shadow: var(--box-shadow);
+        height: 280px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chart-card.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .chart-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+    }
+
+    .chart-container {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-card {
+            height: 280px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .kpi-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: -240px;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        .sidebar.active {
+            left: 0;
+        }
+        
+        .main-content {
+            padding: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .kpi-card {
+            padding: 1rem;
+        }
+        
+        .kpi-value {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--gray-100);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--gray-400);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-500);
+    }
+
+    /* Buttons and Controls */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid var(--gray-300);
+        color: var(--gray-700);
+    }
+
+    .btn-outline:hover {
+        background-color: var(--gray-100);
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
+        background: transparent;
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+    }
+
+    .btn-icon:hover {
+        background: var(--gray-100);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <button class="mobile-menu-toggle" id="menuToggle" style="color: white;">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div>
+            <h1 class="dashboard-title">Tableau de Bord Marketing</h1>
+            <p class="dashboard-subtitle" style="color: white;">Analyse des performances clients - {{ month }}</p>
+        </div>
+        <div class="header-actions">
+            <div class="last-update">
+                <small class="text-muted" style="color: white;">Dernière mise à jour</small>
+                <div style="color: white;">{{ last_update|default:"Aujourd'hui" }}</div>
+            </div>
+            <button class="btn btn-sm btn-light" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="dashboard-content">
+        <!-- Sidebar Overlay (Mobile) -->
+       
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <!-- Clients Actifs -->
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <h3 class="kpi-title">Clients Actifs</h3>
+                        <div class="kpi-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">{{ active_clients|intcomma }}</div>
+                    <div class="kpi-trend {% if kpi_evolution.clients_actifs > 0 %}trend-up{% elif kpi_evolution.clients_actifs < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if kpi_evolution.clients_actifs > 0 %}
+                            <i class="fas fa-arrow-up me-1"></i>
+                        {% elif kpi_evolution.clients_actifs < 0 %}
+                            <i class="fas fa-arrow-down me-1"></i>
+                        {% else %}
+                            <i class="fas fa-equals me-1"></i>
+                        {% endif %}
+                        <span>{{ kpi_evolution.clients_actifs|floatformat:1|slice:"1:" }}% vs mois dernier</span>
+                    </div>
+                </div>
+
+                <!-- Clients Rentables -->
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <h3 class="kpi-title">Clients Rentables</h3>
+                        <div class="kpi-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">{{ profitable_pct|floatformat:1 }}%</div>
+                    <div class="kpi-trend {% if kpi_evolution.taux_rentabilite > 0 %}trend-up{% elif kpi_evolution.taux_rentabilite < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if kpi_evolution.taux_rentabilite > 0 %}
+                            <i class="fas fa-arrow-up me-1"></i>
+                        {% elif kpi_evolution.taux_rentabilite < 0 %}
+                            <i class="fas fa-arrow-down me-1"></i>
+                        {% else %}
+                            <i class="fas fa-equals me-1"></i>
+                        {% endif %}
+                        <span>{{ kpi_evolution.taux_rentabilite|floatformat:1 }}% vs mois dernier</span>
+                    </div>
+                </div>
+
+                <!-- Taux de Churn -->
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <h3 class="kpi-title">Taux de Churn</h3>
+                        <div class="kpi-icon">
+                            <i class="fas fa-user-minus"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">{{ churn_rate|floatformat:1 }}%</div>
+                    <div class="kpi-trend {% if kpi_evolution.taux_churn < 0 %}trend-up{% elif kpi_evolution.taux_churn > 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if kpi_evolution.taux_churn < 0 %}
+                            <i class="fas fa-arrow-down me-1"></i>
+                        {% elif kpi_evolution.taux_churn > 0 %}
+                            <i class="fas fa-arrow-up me-1"></i>
+                        {% else %}
+                            <i class="fas fa-equals me-1"></i>
+                        {% endif %}
+                        <span>{{ kpi_evolution.taux_churn|floatformat:1|slice:"1:" }}% vs mois dernier</span>
+                    </div>
+                </div>
+
+                <!-- Revenu Moyen -->
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <h3 class="kpi-title">Revenu Moyen</h3>
+                        <div class="kpi-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">{{ kpi_evolution.revenue_moyen|floatformat:2 }} DT</div>
+                    <div class="kpi-trend {% if kpi_evolution.revenue_moyen > 0 %}trend-up{% elif kpi_evolution.revenue_moyen < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if kpi_evolution.revenue_moyen > 0 %}
+                            <i class="fas fa-arrow-up me-1"></i>
+                        {% elif kpi_evolution.revenue_moyen < 0 %}
+                            <i class="fas fa-arrow-down me-1"></i>
+                        {% else %}
+                            <i class="fas fa-equals me-1"></i>
+                        {% endif %}
+                        <span>{{ kpi_evolution.revenue_moyen|floatformat:1 }}% vs mois dernier</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ligne 1 - Trois graphiques principaux -->
+            <div class="grid-3">
+                <!-- Engagement -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Engagement</h3>
+                      
+                    </div>
+                    <div class="chart-container">
+                        <div id="engagementChart"></div>
+                    </div>
+                </div>
+
+                <!-- Type de clients -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Type de clients</h3>
+                        <div class="dropdown">
+                            <button class="btn btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">Exporter</a></li>
+                                <li><a class="dropdown-item" href="#">Détails</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="clientTypeChart"></div>
+                    </div>
+                </div>
+
+                <!-- Rentabilité -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Rentabilité</h3>
+                        <div class="dropdown">
+                           
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">Exporter</a></li>
+                                <li><a class="dropdown-item" href="#">Détails</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="profitabilityChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ligne 2 - Transactions mensuelles (pleine largeur) -->
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3 class="chart-title">Transactions Mensuelles</h3>
+                    
+                </div>
+                <div class="chart-container">
+                    <div id="transactionsChart"></div>
+                </div>
+            </div>
+        </main>
+    
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
+<script>
+// Configuration des couleurs
+const colors = {
+    primary: '#ff6000',
+    primaryDark: '#cc4d00',
+    primaryLight: '#ff8533',
+    black: '#1a1a1a',
+    gray900: '#2d2d2d',
+    gray800: '#3d3d3d',
+    gray700: '#4d4d4d',
+    gray600: '#6b7280',
+    gray500: '#9ca3af',
+    gray400: '#d1d5db',
+    gray300: '#e5e7eb',
+    gray200: '#f3f4f6',
+    gray100: '#f9fafb',
+    success: '#aeaeae',
+    danger: '#6b7280',
+    warning: '#121212',
+    info: '#3d3d3d'
+};
+
+
+// Initialisation des graphiques
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier que ApexCharts est chargé
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts non chargé');
+        return;
+    }
+
+    // Initialiser le menu mobile
+    initMobileMenu();
+    
+    // Initialiser les graphiques
+    initEngagementChart();
+    initClientTypeChart();
+    initProfitabilityChart();
+    initTransactionsChart();
+    
+    // Configurer les écouteurs d'événements
+    setupEventListeners();
+});
+
+function initMobileMenu() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (!menuToggle || !sidebar) return;
+
+    menuToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sidebar.classList.toggle('active');
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.toggle('active');
+        }
+        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+    });
+
+    // Fermer le menu en cliquant à l'extérieur
+    document.addEventListener('click', function(e) {
+        if (sidebar.classList.contains('active') && 
+            !sidebar.contains(e.target) && 
+            e.target !== menuToggle) {
+            closeSidebar();
+        }
+    });
+
+    // Fermer le menu en cliquant sur l'overlay
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.remove('active');
+        }
+        document.body.style.overflow = '';
+    }
+}
+
+function initEngagementChart() {
+    try {
+        const data = {{ engagement_data|safe }};
+        const options = {
+            series: Object.values(data),
+            chart: {
+                type: 'donut',
+                height: '100%',
+                fontFamily: 'Inter, sans-serif',
+                toolbar: { show: false }
+            },
+            labels: Object.keys(data).map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+            colors: [colors.primary, colors.success, colors.warning],
+            legend: {
+                position: 'bottom',
+                horizontalAlign: 'center'
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '70%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                label: 'Total',
+                                formatter: () => '100%'
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        const chart = new ApexCharts(document.querySelector("#engagementChart"), options);
+        chart.render();
+        return chart;
+    } catch (error) {
+        console.error('Erreur initialisation engagementChart:', error);
+    }
+}
+
+function initClientTypeChart() {
+    try {
+        const data = {{ client_type_data|safe }};
+        const options = {
+            series: Object.values(data),
+            chart: {
+                type: 'pie',
+                height: '100%',
+                fontFamily: 'Inter, sans-serif',
+                toolbar: { show: false }
+            },
+            labels: Object.keys(data).map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+            colors: [colors.primary, colors.success, colors.info],
+            legend: {
+                position: 'bottom',
+                horizontalAlign: 'center'
+            }
+        };
+        
+        const chart = new ApexCharts(document.querySelector("#clientTypeChart"), options);
+        chart.render();
+        return chart;
+    } catch (error) {
+        console.error('Erreur initialisation clientTypeChart:', error);
+    }
+}
+
+function initProfitabilityChart() {
+    try {
+        const data = {{ profitability_data|safe }};
+        const options = {
+            series: Object.values(data),
+            chart: {
+                type: 'radialBar',
+                height: '100%',
+                fontFamily: 'Inter, sans-serif',
+                toolbar: { show: false }
+            },
+            plotOptions: {
+                radialBar: {
+                    dataLabels: {
+                        name: { fontSize: '12px' },
+                        value: { 
+                            fontSize: '24px',
+                            formatter: (val) => val + '%'
+                        },
+                        total: {
+                            show: true,
+                            label: 'Moyenne',
+                            formatter: (w) => {
+                                const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                return (total / w.globals.series.length).toFixed(1) + '%';
+                            }
+                        }
+                    }
+                }
+            },
+            labels: Object.keys(data).map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+            colors: [colors.primary, colors.success, colors.warning]
+        };
+        
+        const chart = new ApexCharts(document.querySelector("#profitabilityChart"), options);
+        chart.render();
+        return chart;
+    } catch (error) {
+        console.error('Erreur initialisation profitabilityChart:', error);
+    }
+}
+
+function initTransactionsChart() {
+    try {
+        const timelineData = {
+            months: {{ timeline_data.months|safe }},
+            total_purchase: {{ timeline_data.total_purchase|safe }},
+            total_recharge: {{ timeline_data.total_recharge|safe }}
+        };
+
+        console.log('Données des transactions:', timelineData);
+
+        const options = {
+            series: [
+                { name: 'Achats', data: timelineData.total_purchase },
+                { name: 'Recharges', data: timelineData.total_recharge }
+            ],
+            chart: {
+                type: 'bar',
+                height: '100%',
+                stacked: true,
+                fontFamily: 'Inter, sans-serif',
+                toolbar: { show: true }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '70%',
+                    borderRadius: 4,
+                    endingShape: 'rounded'
+                }
+            },
+            colors: [colors.primary, colors.gray600],
+            xaxis: {
+                categories: timelineData.months,
+                labels: {
+                    style: { colors: colors.gray700 }
+                }
+            },
+            yaxis: {
+                title: { text: 'Montant (DT)' },
+                labels: {
+                    formatter: (val) => val.toLocaleString('fr-FR')
+                }
+            },
+            tooltip: {
+                y: {
+                    formatter: (val) => val.toLocaleString('fr-FR', { 
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2 
+                    }) + ' DT'
+                }
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'right'
+            }
+        };
+
+        const chart = new ApexCharts(document.querySelector("#transactionsChart"), options);
+        chart.render();
+        return chart;
+    } catch (error) {
+        console.error('Erreur initialisation transactionsChart:', error);
+    }
+}
+
+function setupEventListeners() {
+    // Gestion du rafraîchissement
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            icon.classList.add('fa-spin');
+            this.disabled = true;
+
+            // Simuler un rechargement
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                this.disabled = false;
+                showToast('Données actualisées avec succès', 'success');
+            }, 1000);
+        });
+    }
+
+    // Gestion des onglets de période
+    document.querySelectorAll('.period-tabs .btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const parent = this.closest('.btn-group');
+            parent.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            // Ici, vous pouvez ajouter la logique pour charger les données de la période
+        });
+    });
+
+    // Gestion du redimensionnement
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            window.dispatchEvent(new Event('resizeCharts'));
+        }, 250);
+    });
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }, 100);
+}
+
+// Style pour les notifications
+const style = document.createElement('style');
+style.textContent = `
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 9999;
+}
+.toast-notification.success { background-color: ${colors.success}; }
+.toast-notification.error { background-color: ${colors.danger}; }
+.toast-notification.warning { background-color: ${colors.warning}; }
+.toast-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

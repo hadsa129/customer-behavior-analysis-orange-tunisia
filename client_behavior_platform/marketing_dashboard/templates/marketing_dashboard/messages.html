@@ -1,0 +1,661 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #ff6600;
+        --success-color: #00a86b;
+        --warning-color: #ff9f1c;
+        --danger-color: #e63946;
+        --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        --gradient-start: #ff6600;
+        --gradient-end: #ff8533;
+    }
+
+    .marketing-agent {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .agent-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, var(--gradient-start), var(--gradient-end));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        box-shadow: var(--card-shadow);
+        border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .message-category {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .message-category:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .category-icon {
+        font-size: 1.8rem;
+        color: var(--primary-color);
+        background: white;
+        padding: 0.5rem;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-item {
+        padding: 1.5rem;
+        background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        border-left: 6px solid var(--primary-color);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .message-item:hover {
+        transform: translateX(8px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-item::before {
+        content: "💬";
+        margin-right: 0.75rem;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+    }
+
+    .message-item p {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .message-item .actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .message-item:hover .actions {
+        opacity: 1;
+    }
+
+    .action-button {
+        background: linear-gradient(145deg, var(--gradient-start), var(--gradient-end));
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .action-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2);
+    }
+
+    .social-media-message {
+        background: linear-gradient(135deg, #4f46e5, #818cf8);
+        color: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .social-media-message::before {
+        content: "📱";
+        margin-right: 0.75rem;
+        font-size: 1.2rem;
+    }
+
+    .social-media-message .icons {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        opacity: 0.7;
+    }
+
+    .message-stats {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        text-align: center;
+    }
+
+    .stat-icon {
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 1rem 2rem;
+        border-radius: 2rem;
+        box-shadow: var(--card-shadow);
+        display: none;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .notification.show {
+        display: block;
+    }
+
+    .notification.success {
+        background: linear-gradient(145deg, #00a86b, #22c55e);
+        color: white;
+    }
+
+    .notification.error {
+        background: linear-gradient(145deg, #e63946, #f43f5e);
+        color: white;
+    }
+
+    .notification.warning {
+        background: linear-gradient(145deg, #ff9f1c, #f59e0b);
+        color: white;
+    }
+
+    .notification.info {
+        background: linear-gradient(145deg, #4f46e5, #818cf8);
+        color: white;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .scroll-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: var(--gradient-start);
+        border-radius: 50%;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+
+    .scroll-to-top.show {
+        display: flex;
+    }
+
+    .scroll-to-top:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(255, 102, 0, 0.3);
+    }
+
+    .scroll-to-top i {
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .floating {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .message-error {
+        background: linear-gradient(135deg, #fecaca, #fca5a5);
+        border-left: 4px solid #ef4444;
+    }
+
+    .message-warning {
+        background: linear-gradient(135deg, #fef08a, #fde047);
+        border-left: 4px solid #eab308;
+    }
+
+    .message-info {
+        background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+        border-left: 4px solid #3b82f6;
+    }
+
+    .message-system {
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        border-left: 4px solid #64748b;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 0.5rem;
+        border: 1px dashed #cbd5e1;
+        margin: 1rem 0;
+    }
+
+    .empty-state i {
+        font-size: 2rem;
+        color: #94a3b8;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        margin: 0.5rem 0 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Marketing Agent Header -->
+    <div class="marketing-agent">
+        <div class="agent-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold mb-1">Agent Marketing MaxIt</h1>
+            <p class="text-gray-600">Messages personnalisés pour votre client</p>
+        </div>
+    </div>
+
+    <!-- Message Categories -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Acquisition Messages -->
+        <div class="message-category">
+            <div class="category-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-user-plus category-icon"></i>
+                    <h3 class="font-semibold">Acquisition</h3>
+                </div>
+                <span class="text-sm text-gray-500">{{ messages.acquisition|length }} messages</span>
+            </div>
+            {% for message in messages.acquisition %}
+            <div class="message-item">
+                <p>{{ message }}</p>
+                <div class="actions">
+                    <button class="action-button" data-copy="{{ message|escapejs }}">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button class="action-button" data-share="{{ message|escapejs }}">
+                        <i class="fas fa-share"></i> Partager
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Jeux et Fidélisation -->
+        <div class="message-category">
+            <div class="category-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-gamepad category-icon"></i>
+                    <h3 class="font-semibold">Jeux & Fidélisation</h3>
+                </div>
+                <span class="text-sm text-gray-500">{{ messages.jeux_et_fidelisation|length }} messages</span>
+            </div>
+            {% for message in messages.jeux_et_fidelisation %}
+            <div class="message-item">
+                <p>{{ message }}</p>
+                <div class="actions">
+                    <button class="action-button" data-copy="{{ message|escapejs }}">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button class="action-button" data-share="{{ message|escapejs }}">
+                        <i class="fas fa-share"></i> Partager
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Options Recommandées -->
+        <div class="message-category">
+            <div class="category-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-star category-icon"></i>
+                    <h3 class="font-semibold">Options Recommandées</h3>
+                </div>
+                <span class="text-sm text-gray-500">{{ messages.options_recommandees|length }} messages</span>
+            </div>
+            {% for message in messages.options_recommandees %}
+            <div class="message-item">
+                <p>{{ message }}</p>
+                <div class="actions">
+                    <button class="action-button" data-copy="{{ message|escapejs }}">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button class="action-button" data-share="{{ message|escapejs }}">
+                        <i class="fas fa-share"></i> Partager
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Services Marketplace -->
+        <div class="message-category">
+            <div class="category-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-store category-icon"></i>
+                    <h3 class="font-semibold">Services Marketplace</h3>
+                </div>
+                <span class="text-sm text-gray-500">{{ messages.services_marketplace|length }} messages</span>
+            </div>
+            {% for message in messages.services_marketplace %}
+            <div class="message-item">
+                <p>{{ message }}</p>
+                <div class="actions">
+                    <button class="action-button" data-copy="{{ message|escapejs }}">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button class="action-button" data-share="{{ message|escapejs }}">
+                        <i class="fas fa-share"></i> Partager
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Messages Personnalisés -->
+        <div class="message-category">
+            <div class="category-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-user-tag category-icon"></i>
+                    <h3 class="font-semibold">Messages Personnalisés</h3>
+                </div>
+                <span class="text-sm text-gray-500">{{ messages.messages_personnalises|length }} messages</span>
+            </div>
+            {% for message in messages.messages_personnalises %}
+            <div class="message-item">
+                <p>{{ message }}</p>
+                <div class="actions">
+                    <button class="action-button" data-copy="{{ message|escapejs }}">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button class="action-button" data-share="{{ message|escapejs }}">
+                        <i class="fas fa-share"></i> Partager
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Messages Généraux -->
+        <div class="message-category">
+            <div class="category-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-bullhorn category-icon"></i>
+                    <h3 class="font-semibold">Messages Généraux</h3>
+                </div>
+                <span class="text-sm text-gray-500">{{ messages.messages_generaux|length }} messages</span>
+            </div>
+            {% for message in messages.messages_generaux %}
+            <div class="message-item">
+                <p>{{ message }}</p>
+                <div class="actions">
+                    <button class="action-button" data-copy="{{ message|escapejs }}">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button class="action-button" data-share="{{ message|escapejs }}">
+                        <i class="fas fa-share"></i> Partager
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+           <!-- Social Media Messages -->
+           <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-4">Messages pour les Réseaux Sociaux</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for message in messages.social_media %}
+                <div class="social-media-message">
+                    <div class="flex items-center gap-2">
+                        <i class="fab fa-facebook-f"></i>
+                        <i class="fab fa-twitter"></i>
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                    <p class="mt-2">{{ message }}</p>
+                    <div class="mt-2 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <button class="text-sm text-white hover:opacity-75">
+                                <i class="fas fa-share"></i> Partager
+                            </button>
+                            <button class="text-sm text-white hover:opacity-75">
+                                <i class="fas fa-copy"></i> Copier
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white"><i class="fas fa-heart"></i> 123</span>
+                            <span class="text-white"><i class="fas fa-comment"></i> 45</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        
+        <!-- Actions Section -->
+        <div class="mt-8">
+            <h3 class="text-xl font-semibold mb-4">Actions Rapides</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button class="action-button bg-success-100 text-success-600 hover:bg-success-200">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Envoyer Messages</span>
+                    </div>
+                </button>
+
+                <button class="action-button bg-primary-100 text-primary-600 hover:bg-primary-200">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analyser Performance</span>
+                    </div>
+                </button>
+
+                <button class="action-button bg-warning-100 text-warning-600 hover:bg-warning-200">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-sync"></i>
+                        <span>Regénérer Messages</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    
+
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    // Copy to clipboard functionality
+    function copyToClipboard(text, button = null) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                showNotification('Copié dans le presse-papiers !', 'success');
+                if (button) {
+                    const icon = button.querySelector('i');
+                    const originalIcon = icon.className;
+                    icon.className = 'fas fa-check';
+                    button.disabled = true;
+                    
+                    setTimeout(() => {
+                        icon.className = originalIcon;
+                        button.disabled = false;
+                    }, 2000);
+                }
+            })
+            .catch(err => {
+                showNotification('Erreur lors de la copie', 'error');
+                console.error('Failed to copy:', err);
+            });
+    }
+
+    // Share functionality
+    async function shareMessage(text, button = null) {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Message Marketing MaxIt',
+                    text: text
+                });
+                showNotification('Partagé avec succès !', 'success');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    showNotification('Erreur lors du partage', 'error');
+                    console.error('Failed to share:', err);
+                }
+            }
+        } else if (navigator.clipboard) {
+            copyToClipboard(text);
+        } else {
+            showNotification('Fonctionnalité de partage non disponible', 'warning');
+        }
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }, 100);
+    }
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', () => {
+        // Add floating animation to avatar
+        const avatar = document.querySelector('.agent-avatar');
+        if (avatar) {
+            avatar.classList.add('floating');
+        }
+
+        // Handle scroll to top button
+        const scrollToTopBtn = document.querySelector('.scroll-to-top');
+        if (scrollToTopBtn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollToTopBtn.classList.add('show');
+                } else {
+                    scrollToTopBtn.classList.remove('show');
+                }
+            });
+        }
+
+        // Add click handlers for all copy buttons
+        document.querySelectorAll('[data-copy]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const message = button.getAttribute('data-copy');
+                copyToClipboard(message, button);
+            });
+        });
+
+        // Add click handlers for all share buttons
+        document.querySelectorAll('[data-share]').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const message = button.getAttribute('data-share');
+                await shareMessage(message, button);
+            });
+        });
+
+        // Add hover effects to message items
+        document.querySelectorAll('.message-item').forEach(message => {
+            message.addEventListener('mouseenter', () => {
+                message.style.transform = 'translateY(-5px)';
+            });
+            message.addEventListener('mouseleave', () => {
+                message.style.transform = '';
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends 'marketing_dashboard/base.html' %} {% block content %} {% load static %}
+<style>
+    main {
+        font-family: Arial, sans-serif;
+        background-image: url('/static/images/bk.png');
+        /* Path to the background image */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    
+    .form-container {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px #ff660033;
+        width: 100%;
+        max-width: 1000px;
+        box-sizing: border-box;
+    }
+    
+    .header-container {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .header-container h2 {
+        color: #343332;
+        font-size: 2.2em;
+        margin: 0;
+        padding: 10px 0;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .header-container h2:after {
+        content: '';
+        position: absolute;
+        width: 60px;
+        height: 4px;
+        background: #ff6600;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 2px;
+    }
+    
+    /* Style des champs du formulaire */
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #090909;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #0f0f0e;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #ff6600;
+        box-shadow: 0 0 0 3px #ff660066;
+        outline: none;
+    }
+    
+    
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px; /* Espacement entre les boutons */
+        margin-top: 20px;
+    }
+
+    .form-container button {
+        flex: 1; /* Chaque bouton prend une part égale de l'espace */
+        padding: 10px;
+        background-color: #ff6600;
+        color: #f9f7f5;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: bold;
+        margin: 0; /* On enlève les marges précédentes */
+        transition: background-color 0.3s; /* Transition fluide au survol */
+    }
+
+    .form-container button:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        background-color: #ff6600;
+    }
+    
+
+    .header-container {
+        display: flex;
+        align-items: center;
+        /* Align items vertically centered */
+    }
+    
+    .form-container a {
+        color: #f9f9f9;
+        text-decoration: none;
+    }
+    
+    .form-container a:hover {
+        text-decoration: underline;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .form-container button:hover {
+        animation: pulse 1.5s infinite;
+    }
+</style>
+
+
+<main>
+    <div class="form-container">
+        <div class="header-container">
+            <h2>📊 Analyse du Client</h2>
+        </div>
+        <form method="POST" action="{% url 'marketing_dashboard:formulaire_client' %}">
+            {% csrf_token %} 
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+            <div class="button-container">
+                <button type="submit" name="rapport" class="btn btn-primary" value="rapport">
+                    <span>📄</span> Générer le Rapport
+                </button>
+                <button type="submit" name="action" class="btn btn-primary" value="recommandation">
+                    <span>💡</span> Voir les Recommandations
+                </button>
+                <button type="submit" name="action" class="btn btn-primary" value="messages">
+                    <span>📩</span> Générer les Messages
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="form-page">
+    <div class="form-container">
+        <img src="{% static 'images/logo.png' %}" alt="Bank Logo">
+        <h2>Login</h2>
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <p>Votre nom d'utilisateur et/ou mot de passe est incorrect. Veuillez réessayer.</p>
+            </div>
+        {% endif %}
+        <form method="post" action="{% url 'users:login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            
+            <div class="form-group">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        <p>Don't have an account? <a href="{% url 'users:register' %}">Sign up</a></p>
+    </div>
+</body>
+
+</html>

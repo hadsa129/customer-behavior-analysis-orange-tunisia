@@ -1,0 +1,678 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block extra_css %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- DataTables -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.tailwind.min.css"/>
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.tailwind.min.js"></script>
+<style>
+    :root {
+        --primary-color: #ff6600;
+        --primary-light: #ff8533;
+        --primary-dark: #e65c00;
+        --secondary-color: #4d4d4d;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --gray-100: #f1f1f1;
+        --gray-200: #e0e0e0;
+        --gray-300: #c0c0c0;
+        --gray-400: #999999;
+        --gray-500: #666666;
+        --border-color: #e0e0e0;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background-color: #f9fafb;
+        color: #1f2937;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .kpi-card {
+        @apply bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border-l-2 border-[#ff6600];
+        flex: 1;
+        min-width: 120px;
+        margin: 0 10px 20px;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px -5px rgba(255, 102, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .kpi-card-header {
+        @apply px-6 py-4 border-b border-gray-100 flex items-center;
+    }
+    
+    .kpi-card-icon {
+        @apply p-3 rounded-lg bg-[#fff5e6];
+        color: var(--primary-color);
+    }
+    
+    .kpi-card-body {
+        @apply p-6;
+    }
+    
+    .kpi-value {
+        @apply text-3xl font-bold text-gray-900 mb-1;
+    }
+    
+    .kpi-label {
+        @apply text-sm font-medium text-gray-500 uppercase tracking-wider;
+    }
+    
+    .kpi-trend {
+        @apply flex items-center text-sm mt-2;
+    }
+    
+    .kpi-trend.up { @apply text-red-600; }
+    .kpi-trend.down { @apply text-green-600; }
+    .kpi-trend.stable { @apply text-gray-500; }
+    
+    /* Header Styles */
+    .section-header {
+        @apply bg-gradient-to-r from-[#ff6600] to-[#ff8533] text-white px-6 py-4 rounded-t-lg flex items-center justify-between;
+    }
+    
+    .section-title {
+        @apply text-xl font-semibold;
+    }
+    
+    .section-subtitle {
+        @apply text-sm opacity-90;
+    }
+    
+    /* Chart Container */
+    .chart-container {
+        @apply bg-white rounded-lg shadow-sm p-6 border border-gray-100;
+    }
+    
+    /* Button Styles */
+    .btn-primary {
+        @apply px-4 py-2 rounded-lg font-medium text-white bg-[#ff6600] hover:bg-[#e65c00] transition-colors duration-200;
+    }
+    
+    .btn-outline {
+        @apply px-4 py-2 rounded-lg font-medium border border-[#ff6600] text-[#ff6600] hover:bg-[#ff6600] hover:text-white transition-colors duration-200;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Header Section -->
+    <div class="max-w-7xl mx-auto mb-8">
+        <div class="rounded-xl shadow-xl overflow-hidden border border-gray-100 transition-all duration-300 transform hover:shadow-2xl hover:-translate-y-0.5" style="background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);">
+            <div class="px-8 py-10 text-center md:text-left">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-2">
+                    Analyse de Churn
+                </h1>
+                <p class="text-lg text-white opacity-90 max-w-3xl">
+                    Analyse approfondie du taux de désabonnement des clients et des tendances mensuelles
+                </p>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <!-- Clients Analysés Card -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border-l-2 border-[#ff6600]">
+            <div class="p-4">
+                <div class="flex items-center justify-between">
+                    <div class="p-2 rounded-md bg-[#fff5e6]">
+                        <i class="fas fa-users text-xl text-[#ff6600]"></i>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Clients analysés</p>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ total_clients|default:0|intcomma }}</h3>
+                    </div>
+                </div>
+                <div class="mt-2 pt-2 border-t border-gray-100">
+                    <div class="flex items-center text-xs text-gray-500">
+                        <i class="fas fa-equals mr-1 text-[#ff6600]"></i>
+                        <span>Total sur la période</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taux de Churn Card -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border-l-2 border-[#ff6600]">
+            <div class="p-4">
+                <div class="flex items-center justify-between">
+                    <div class="p-2 rounded-md bg-[#fff5e6]">
+                        <i class="fas fa-chart-line text-xl text-[#ff6600]"></i>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Taux de Churn</p>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ churn_rate|default:0 }}%</h3>
+                    </div>
+                </div>
+                <div class="mt-2 pt-2 border-t border-gray-100">
+                    <div class="flex items-center text-xs {% if churn_rate > 5 %}text-red-600{% elif churn_rate > 2 %}text-yellow-600{% else %}text-green-600{% endif %}">
+                        {% if churn_rate > 5 %}
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span>Élevé</span>
+                        {% elif churn_rate > 2 %}
+                            <i class="fas fa-arrow-down mr-1"></i>
+                            <span>Moyen</span>
+                        {% else %}
+                            <i class="fas fa-check mr-1"></i>
+                            <span>Faible</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Churn Summary Table -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        
+    </div>
+
+    <!-- Churn Summary Table -->
+    <div class="max-w-7xl mx-auto mt-8">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">Résumé mensuel du churn</h2>
+                    <p class="text-sm text-gray-600">Vue d'ensemble du taux de churn par mois</p>
+                </div>
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i> {{ churn_summary|length }} mois d'analyse
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="churnTable" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mois</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taux de Churn</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Évolution</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for month, rate in churn_summary.items %}
+                        {% with total_clients=client_counts|dictget:month %}
+
+
+
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ month|to_date|date:"F Y" }}
+                            </td>
+                            
+                        </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if rate > 5 %}bg-red-100 text-red-800
+                                    {% elif rate > 2 %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ rate|floatformat:2 }}%
+                                </span>
+                            </td>
+                          
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if not forloop.last %}
+                                    {% with next_rate=churn_list|slice:forloop.counter|first|last %}
+                                        {% if next_rate > rate %}
+                                            <span class="text-red-600"><i class="fas fa-arrow-up"></i> {{ next_rate|sub:rate|floatformat:2 }}%</span>
+                                        {% elif next_rate < rate %}
+                                            <span class="text-green-600"><i class="fas fa-arrow-down"></i> {{ rate|sub:next_rate|floatformat:2 }}%</span>
+                                        {% else %}
+                                            <span class="text-gray-500"><i class="fas fa-equals"></i> Stable</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Data Table -->
+    <div class="max-w-7xl mx-auto mt-8">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Données détaillées des clients</h2>
+                        <p class="text-sm text-gray-600">Données brutes utilisées pour l'analyse du churn</p>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-database mr-1"></i> {{ churn_data|length }} enregistrements
+                    </div>
+                </div>
+                <div class="mt-2 flex space-x-2">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Rechercher..." 
+                               class="pl-8 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                        <i class="fas fa-search absolute left-2.5 top-3 text-gray-400"></i>
+                    </div>
+                    <select id="pageLength" class="border rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table id="dataTable" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            {% for column in churn_data.0.keys %}
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {{ column|title }}
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for row in churn_data %}
+                        <tr class="hover:bg-gray-50">
+                            {% for value in row.values %}
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ value|default:"-" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Affichage de <span id="startRow">1</span> à <span id="endRow">{{ churn_data|length|default:0 }}</span> 
+                    sur <span class="font-medium">{{ churn_data|length|default:0 }}</span> résultats
+                </div>
+                <div class="flex space-x-2">
+                    <button id="prevPage" class="px-3 py-1 border rounded text-sm text-gray-700 bg-white disabled:opacity-50" disabled>
+                        <i class="fas fa-chevron-left"></i> Précédent
+                    </button>
+                    <button id="nextPage" class="px-3 py-1 border rounded text-sm text-gray-700 bg-white disabled:opacity-50" disabled>
+                        Suivant <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détails des clients -->
+    <div class="max-w-7xl mx-auto mt-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 flex justify-between items-center">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">Détails des clients</h3>
+                <div class="flex space-x-2">
+                    <button onclick="exportToCSV()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                        <i class="fas fa-download mr-2"></i> Exporter en CSV
+                    </button>
+                    <a href="{% url 'marketing_dashboard:vue_analyser_churn' %}" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                     <i class="fas fa-redo-alt mr-2"></i> Nouvelle analyse
+                    </a>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="clientDetailsTable" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                MSISDN
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Mois
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Activité
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Couvert
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Churn
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date de fin de validité
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for client in analysis_results.churn_data %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ client.msisdn|default:'' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ client.month|default:'' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if client.activity == 1 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ client.activity|yesno:"Actif,Inactif" }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if client.covered == 1 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ client.covered|yesno:"Oui,Non" }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if client.churn == 1 %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ client.churn|yesno:"Oui,Non" }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ client.valid_until|default:'-' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="max-w-7xl mx-auto mt-8 flex justify-between items-center">
+        <a href="{% url 'marketing_dashboard:vue_analyser_churn' %}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+            <i class="fas fa-redo-alt mr-2"></i> Nouvelle analyse
+        </a>
+       
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize DataTable for churn summary
+    $(document).ready(function() {
+        // Churn Summary Table
+        const churnTable = $('#churnTable').DataTable({
+            "order": [[0, "desc"]],
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
+            },
+            "pageLength": 12,
+            "lengthMenu": [12, 24, 36, 48, 60],
+            "dom": '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+            "initComplete": function() {
+                // Add custom search input
+                $('.dataTables_filter input')
+                    .addClass('border rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500')
+                    .attr('placeholder', 'Rechercher...');
+                
+                // Add custom length menu
+                $('.dataTables_length select')
+                    .addClass('border rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500');
+            }
+        });
+
+        // Detailed Data Table
+        const dataTable = $('#dataTable').DataTable({
+            "pageLength": 10,
+            "lengthMenu": [10, 25, 50, 100],
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
+            },
+            "dom": '<"hidden"f>rt<"flex justify-between items-center mt-4"ip>',
+            "initComplete": function() {
+                // Update row count on page change
+                updateRowCount();
+            },
+            "drawCallback": function() {
+                updateRowCount();
+            }
+        });
+
+        // Custom search for detailed table
+        $('#searchInput').on('keyup', function() {
+            dataTable.search(this.value).draw();
+        });
+
+        // Custom page length for detailed table
+        $('#pageLength').on('change', function() {
+            dataTable.page.len(this.value).draw();
+        });
+
+        // Navigation buttons for detailed table
+        $('#prevPage').on('click', function() {
+            dataTable.page('previous').draw('page');
+        });
+
+        $('#nextPage').on('click', function() {
+            dataTable.page('next').draw('page');
+        });
+
+        // Update pagination buttons state
+        dataTable.on('page.dt', function() {
+            const pageInfo = dataTable.page.info();
+            $('#prevPage').prop('disabled', pageInfo.page === 0);
+            $('#nextPage').prop('disabled', pageInfo.page === pageInfo.pages - 1);
+        });
+
+        // Function to update row count
+        function updateRowCount() {
+            const info = dataTable.page.info();
+            $('#startRow').text(info.start + 1);
+            $('#endRow').text(info.end);
+            $('#totalRows').text(info.recordsDisplay);
+        }
+
+        // Initialize Chart.js
+        const ctx = document.getElementById('churnTrendChart').getContext('2d');
+        const months = {{ churn_summary.keys|safe }};
+        const rates = {{ churn_summary.values|safe }};
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.keys({{ churn_summary|safe }}).map(date => new Date(date).toLocaleDateString('fr-FR', {month: 'short', year: 'numeric'})),
+                datasets: [{
+                    label: 'Taux de Churn (%)',
+                    data: Object.values({{ churn_summary|safe }}),
+                    borderColor: 'rgb(249, 115, 22)',
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Taux: ' + context.raw.toFixed(2) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Taux de Churn (%)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Mois'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Export to CSV function
+        function exportToCSV() {
+            // Get data from detailed DataTable
+            const data = [];
+            const headers = [];
+            
+            // Get headers from detailed table
+            $('#dataTable thead th').each(function() {
+                headers.push($(this).text().trim());
+            });
+            
+            // Get all data (including filtered data)
+            const allData = dataTable.data().toArray();
+            
+            // Convert to CSV
+            let csvContent = 'data:text/csv;charset=utf-8,' 
+                + headers.join(';') + '\n';
+                
+            // Add rows
+            allData.forEach(row => {
+                const rowData = [];
+                for (const key in row) {
+                    if (row.hasOwnProperty(key)) {
+                        // Handle nested objects if needed
+                        const value = row[key];
+                        rowData.push(value !== null && typeof value === 'object' ? 
+                            JSON.stringify(value) : 
+                            (value || '').toString().replace(/;/g, ','));
+                    }
+                }
+                csvContent += rowData.join(';') + '\n';
+            });
+            
+            // Create download link
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `churn_data_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize tooltips
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    });
+
+    // Initialisation de DataTable pour le tableau des clients
+    $(document).ready(function() {
+        $('#clientDetailsTable').DataTable({
+            "pageLength": 10,
+            "order": [[1, "desc"]], // Trier par mois par défaut
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/French.json"
+            },
+            "dom": 'Bfrtip',
+            "buttons": [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ]
+        });
+    });
+
+    // Fonction d'export CSV
+    function exportToCSV() {
+        $('#clientDetailsTable').DataTable().button('.buttons-csv').trigger();
+    }
+</script>
+
+<!-- Custom CSS for DataTables -->
+<style>
+    /* Style for DataTables pagination */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 0.25rem 0.75rem;
+        margin: 0 0.25rem;
+        border-radius: 0.25rem;
+        border: 1px solid #d1d5db;
+        background-color: white;
+        color: #374151;
+        cursor: pointer;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background-color: #ea580c;
+        color: white;
+        border-color: #ea580c;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background-color: #f3f4f6;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: #f3f4f6;
+    }
+    
+    /* Style for search input */
+    .dataTables_filter input {
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+    .dataTables_filter input:focus {
+        outline: none;
+        border-color: #ea580c;
+        box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2);
+    }
+    
+    /* Style for select dropdown */
+    .dataTables_length select {
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+    .dataTables_length select:focus {
+        outline: none;
+        border-color: #ea580c;
+        box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2);
+    }
+    
+    /* Style for table header */
+    #dataTable thead th {
+        @apply bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+    }
+    
+    /* Style for table cells */
+    #dataTable tbody td {
+        @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+    }
+    
+    /* Hover effect for table rows */
+    #dataTable tbody tr:hover {
+        @apply bg-gray-50;
+    }
+</style>
+{% endblock %}

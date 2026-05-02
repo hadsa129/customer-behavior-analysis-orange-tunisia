@@ -1,0 +1,119 @@
+/* Styles globaux pour les pages de formulaire et d'accueil */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+body.form-page {
+    font-family: Arial, sans-serif;
+    background-image: url('/static/images/bk.png');
+    /* Path to the background image */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.form-container {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.form-container img {
+    max-width: 80px;
+    margin-bottom: 20px;
+}
+
+.form-container input {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #ff6600;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.form-container button:hover {
+    background-color: #7a7a79;
+}
+
+.form-container a {
+    color: #ff6600;
+    text-decoration: none;
+}
+
+.form-container a:hover {
+    text-decoration: underline;
+}
+
+body.home-page {
+    background-image: url('/static/images/back.png');
+}
+
+.home-container {
+    background-image: url('/static/images/back.png');
+    /* Assurez-vous que l'image est dans le même répertoire */
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* Position to the right */
+    color: #ff6600;
+    /* Change color to #ff6600 */
+    padding: 0 20px;
+}
+
+.welcome-text {
+    /* Remove background and border */
+    padding: 10px;
+    max-width: 50%;
+    /* Limit width */
+    font-family: Arial, sans-serif;
+    /* Change font */
+    text-align: center;
+    /* Center align text */
+}
+
+.welcome-text h1 {
+    font-size: 5em;
+    margin-bottom: 1.3em;
+}
+
+.home-container .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    color: white;
+    background-color: #ff6600;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.home-container .btn:hover {
+    background-color: #7a7a79;
+}

@@ -1,0 +1,1071 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_head %}
+<!-- Chart.js pour les graphiques -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Alpine.js pour l'interactivité -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- Animate.css pour les animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #ff6600;
+        --primary-light: #fff0e6;
+        --primary-dark: #cc5200;
+        --secondary-color: #4d4d4d;
+        --success-color: #00a86b;
+        --danger-color: #e63946;
+        --warning-color: #ff9f1c;
+        --info-color: #ff6600;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --gray-100: #f1f1f1;
+        --gray-200: #e0e0e0;
+        --gray-300: #c0c0c0;
+        --gray-400: #999999;
+        --gray-500: #666666;
+        --border-color: #e0e0e0;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+        background-image: url('/static/images/bk.png');
+        color: #1f2937;
+        line-height: 1.6;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .client-header {
+        background: linear-gradient(135deg, #ff6600, #e65c00);
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+    
+    .client-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.1) 0%, transparent 25%);
+        pointer-events: none;
+    }
+    
+    .client-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin: 0 0 0.75rem 0;
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        display: inline-block;
+    }
+    
+    .client-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 2px;
+    }
+    
+    .client-subtitle {
+        font-size: 1.125rem;
+        opacity: 0.95;
+        font-weight: 400;
+        max-width: 800px;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .client-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .meta-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.875rem 1.25rem;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .meta-item:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .meta-item i {
+        font-size: 1.25rem;
+    }
+    
+    .section {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: var(--card-shadow);
+        padding: 1.75rem;
+        margin-bottom: 1.75rem;
+        height: auto;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    
+    .section-title {
+        font-size: 1.375rem;
+        font-weight: 600;
+        margin: 0 0 1.75rem 0;
+        padding-bottom: 0.875rem;
+        border-bottom: 2px solid var(--primary-color);
+        display: flex;
+        align-items: center;
+        color: var(--dark-color);
+        position: relative;
+    }
+    
+    .section-title i {
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), transparent);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+        transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--primary-color);
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+    }
+    
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .analysis-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-primary {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+    
+    .badge-success {
+        background-color: #fa4e1e;
+        color: var(--success-color);
+    }
+    
+    .badge-warning {
+        background-color: #4b4a44;
+        color: var(--warning-color);
+    }
+    
+    .badge-danger {
+        background-color: #232222;
+        color: var(--danger-color);
+    }
+    
+    .badge-info {
+        background-color: #e0f2fe;
+        color: #817f7e;
+    }
+    
+    .badge-secondary {
+        background-color: #f3f4f6;
+        color: #6b7280;
+    }
+    
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .recommendation-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: all 0.5s ease;
+        z-index: -1;
+    }
+    
+    .btn:hover::before {
+        width: 100%;
+    }
+    
+    .btn-primary {
+        background: #ff6600;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(255, 102, 0, 0.4);
+    }
+    
+    .btn-outline {
+        background-color: white;
+        border: 1px solid var(--gray-300);
+        color: var(--gray-700);
+    }
+    
+    .btn-outline:hover {
+        background-color: var(--gray-100);
+    }
+    
+    .tabs-container {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: var(--card-shadow);
+        padding: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .tab-button {
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        border-radius: 0.25rem;
+        transition: all 0.3s ease;
+    }
+    
+    .tab-button.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .tab-button:not(.active) {
+        color: var(--gray-500);
+        background-color: transparent;
+    }
+    
+    .tab-button:not(.active):hover {
+        background-color: var(--gray-100);
+    }
+    
+    .text-red-500 { color: #ef4444; }
+    .text-green-500 { color: #10b981; }
+    .text-yellow-500 { color: #f59e0b; }
+    .text-orange-500 { color: #ff6600; }
+    .text-indigo-500 { color: #6366f1; }
+    .text-purple-500 { color: #8b5cf6; }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .analysis-grid, .recommendations-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .client-meta {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .client-meta {
+            grid-template-columns: 1fr;
+        }
+        
+        .client-title {
+            font-size: 1.75rem;
+        }
+        
+        .client-subtitle {
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8" x-data="{ activeTab: 'overview' }">
+    <!-- Header Section -->
+    <div class="client-header">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="client-title">Rapport Marketing Client</h1>
+                <p class="client-subtitle">Analyse complète du comportement client et recommandations personnalisées</p>
+            </div>
+        </div>
+        
+        <div class="client-meta">
+            <div class="meta-item">
+                <div class="flex items-center text-white/80 mb-2">
+                    <i class="fas fa-id-card"></i>
+                    <span class="text-sm uppercase tracking-wider">ID Client</span>
+                </div>
+                <div class="text-white font-medium text-lg">{{ rapport.client_id|default:"N/A"|truncatechars:16 }}</div>
+            </div>
+            
+            <div class="meta-item">
+                <div class="flex items-center text-white/80 mb-2">
+                    <i class="far fa-calendar-alt"></i>
+                    <span class="text-sm uppercase tracking-wider">Période analysée</span>
+                </div>
+                <div class="text-white font-medium">{{ rapport.periode_analyse|default:"Non spécifiée" }}</div>
+            </div>
+            
+           
+            
+            <div class="meta-item">
+                <div class="flex items-center text-white/80 mb-2">
+                    <i class="fas fa-user-tag"></i>
+                    <span class="text-sm uppercase tracking-wider">Type de client</span>
+                </div>
+                <div class="text-white font-medium">{{ rapport.type_client|default:"Non spécifié" }}</div>
+            </div>
+            
+            <div class="meta-item">
+                <div class="flex items-center text-white/80 mb-2">
+                    <i class="fas fa-star"></i>
+                    <span class="text-sm uppercase tracking-wider">Programme MaxIt</span>
+                </div>
+                <div class="text-white font-medium">{{ rapport.est_maxit|yesno:"Actif,Inactif"|default:"Non" }}</div>
+            </div>
+            
+            <div class="meta-item">
+                <div class="flex items-center text-white/80 mb-2">
+                    <i class="fas fa-signal"></i>
+                    <span class="text-sm uppercase tracking-wider">Niveau d'engagement</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-white font-medium mr-2">{{ rapport.niveau_engagement|default:"Moyen" }}</span>
+                </div>
+            </div>
+            
+            <div class="meta-item">
+                <div class="flex items-center text-white/80 mb-2">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="text-sm uppercase tracking-wider">Niveau de rentabilité</span>
+                </div>
+                <div class="text-white font-medium">{{ rapport.rentabilite|default:"Moyenne" }}</div>
+            </div>
+            
+            <div class="meta-item">
+                <div class="flex items-center text-white/80 mb-2">
+                    <i class="fas fa-user-shield"></i>
+                    <span class="text-sm uppercase tracking-wider">Risque de désabonnement</span>
+                </div>
+                <div class="text-white font-medium">{{ rapport.statut_churn|default:"Inconnu" }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="tabs-container">
+        <div class="flex overflow-x-auto scrollbar-hide">
+            <nav class="flex space-x-1" aria-label="Navigation principale">
+                <button @click="activeTab = 'overview'" 
+                        :class="activeTab === 'overview' ? 'active' : ''"
+                        class="tab-button">
+                    <i class="fas fa-home mr-2"></i> Vue d'ensemble
+                </button>
+                <button @click="activeTab = 'activity'" 
+                        :class="activeTab === 'activity' ? 'active' : ''"
+                        class="tab-button">
+                    <i class="fas fa-chart-line mr-2"></i> Activité
+                </button>
+                <button @click="activeTab = 'consumption'" 
+                        :class="activeTab === 'consumption' ? 'active' : ''"
+                        class="tab-button">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Consommation
+                </button>
+                <button @click="activeTab = 'maxit'" 
+                        :class="activeTab === 'maxit' ? 'active' : ''"
+                        class="tab-button">
+                    <i class="fas fa-bolt mr-2"></i> Programme MaxIt
+                </button>
+              
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Main Content Sections -->
+    <div class="space-y-8">
+        <!-- Overview Tab -->
+        <div x-show="activeTab === 'overview'" class="animate__animated animate__fadeIn space-y-8">
+            <!-- Key Stats Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-pie"></i> Tableau de Bord
+                </h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.nb_achat|default:"0" }}</div>
+                        <div class="stat-label">Achats</div>
+                        <div class="text-sm mt-1">{{ rapport.montant_total_achat|default:0|div:1000|floatformat:0 }} DT</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.nb_recharges|default:"0" }}</div>
+                        <div class="stat-label">Recharges</div>
+                        <div class="text-sm mt-1">{{ rapport.montant_total_recharge|default:0|div:1000|floatformat:0 }} DT</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.nombre_jeu|default:"0" }}</div>
+                        <div class="stat-label">Jeux</div>
+                        <div class="text-sm mt-1">{{ rapport.gains_jeux|default:0|div:1000|floatformat:0 }} DT gagnés</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.data_usage|default:"0"|floatformat:0 }} Mo</div>
+                        <div class="stat-label">Données</div>
+                        <div class="text-sm mt-1">Consommation</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Client Profile Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i> Profil Client
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    
+                    <div class="analysis-card">
+                        <h3 class="font-semibold mb-4">Activité Récente</h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Dernier achat:</span>
+                                <span class="font-medium">{{ rapport.dernier_achat|default:"Jamais" }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Dernière recharge:</span>
+                                <span class="font-medium">{{ rapport.derniere_recharge|default:"Jamais" }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Canal d'achat:</span>
+                                <span class="font-medium">{{ rapport.canal_achat|default:"Non spécifié" }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Canal recharge:</span>
+                                <span class="font-medium">{{ rapport.canal_recharge|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Segmentation Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-pie"></i> Segmentation Client
+                </h2>
+                
+                <!-- Visualisation des segments -->
+                <div class="mt-6">
+                    <h3 class="font-semibold mb-4">Analyse Segmentaire</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Segment Rentabilité -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mr-3">
+                                    <i class="fas fa-coins text-red-500"></i>
+                                </div>
+                                <h4 class="font-semibold">Rentabilité</h4>
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                Client <strong class="{% if rapport.rentabilite == 'non rentable' %}text-red-500{% else %}text-green-500{% endif %}">
+                                {{ rapport.rentabilite|default:"N/A" }}</strong>
+                            </p>
+                        </div>
+                        
+                        <!-- Segment Engagement -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center mr-3">
+                                    <i class="fas fa-bolt text-orange-500"></i>
+                                </div>
+                                <h4 class="font-semibold">Engagement</h4>
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                <strong class="{% if rapport.niveau_engagement == 'très engagé' %}text-green-500{% elif rapport.niveau_engagement == 'peu engagé' %}text-yellow-500{% else %}text-red-500{% endif %}">
+                                {{ rapport.niveau_engagement|default:"N/A" }}</strong>
+                            </p>
+                        </div>
+                        
+                        <!-- Segment Type d'Intérêt -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center mr-3">
+                                    <i class="fas fa-chart-pie text-purple-500"></i>
+                                </div>
+                                <h4 class="font-semibold">Type d'Intérêt</h4>
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                Principalement <strong class="text-indigo-500">{{ rapport.type_interet|default:"N/A" }}</strong>
+                            </p>
+                        </div>
+                        
+                        <!-- Segment Action Dominante -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mr-3">
+                                    <i class="fas fa-exchange-alt text-green-500"></i>
+                                </div>
+                                <h4 class="font-semibold">Action Dominante</h4>
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                <strong class="{% if rapport.action == 'achat' %}text-orange-500{% elif rapport.action == 'recharge' %}text-green-500{% else %}text-yellow-500{% endif %}">
+                                {{ rapport.action_dominante|default:"N/A"|title }}</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+           
+            
+            
+        </div>
+        
+        <!-- Activity Tab -->
+        <div x-show="activeTab === 'activity'" class="animate__animated animate__fadeIn space-y-8">
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-exchange-alt"></i> Transactions
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.nb_achat|default:0 }}</div>
+                        <div class="stat-label">Achats</div>
+                        <div class="text-sm mt-1">{{ rapport.montant_achats|default:0|div:1000|floatformat:2 }} DT</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.nb_recharges|default:0 }}</div>
+                        <div class="stat-label">Recharges</div>
+                        <div class="text-sm mt-1">{{ rapport.montant_recharges|default:0|div:1000|floatformat:2 }} DT</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.nb_jeux|default:0 }}</div>
+                        <div class="stat-label">Jeux</div>
+                        <div class="text-sm mt-1">{{ rapport.gains_jeux|default:0|floatformat:2 }} DT</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="stat-value">
+                            
+                                {{ rapport.moyenne_achats|default:0|div:1000|floatformat:1 }} DT
+                            
+                        </div>
+                        <div class="stat-label">Moyenne/achat</div>
+                        <div class="text-sm mt-1">{{ rapport.nb_achats|default:0 }} achats</div>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-3">Canaux préférés</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-700">Canal d'achat principal</h4>
+                            <p class="text-lg">{{ rapport.canal_achat|default:"Non spécifié"|title }}</p>
+                            {% if rapport.canal_achat_pourcentage %}
+                            <p class="text-sm text-gray-500">{{ rapport.canal_achat_pourcentage|floatformat:1 }}% des achats</p>
+                            {% endif %}
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-700">Canal de recharge principal</h4>
+                            <p class="text-lg">{{ rapport.canal_recharge|default:"Non spécifié"|title }}</p>
+                            {% if rapport.canal_recharge_pourcentage %}
+                            <p class="text-sm text-gray-500">{{ rapport.canal_recharge_pourcentage|floatformat:1 }}% des recharges</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+        </div>
+        
+        <!-- Consumption Tab -->
+        <div x-show="activeTab === 'consumption'" class="animate__animated animate__fadeIn space-y-8">
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-tachometer-alt"></i> Consommation
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.donnees_consommees|default:0|floatformat:0 }} Mo</div>
+                        <div class="stat-label">Données</div>
+                        <div class="text-sm mt-1">Pendant la période</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.voix_utilisee|default:0|div:60|floatformat:0 }} min</div>
+                        <div class="stat-label">Voix</div>
+                        <div class="text-sm mt-1">Temps d'appel</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-sms"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.sms|default:0 }}</div>
+                        <div class="stat-label">SMS</div>
+                        <div class="text-sm mt-1">Messages texte</div>
+                    </div>
+                </div>
+                
+              
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-tags"></i> Options Achetées
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {% for option in rapport.options_achetees %}
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="bg-orange-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-tag text-orange-500"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">{{ option.nom }} </h3>
+                                <p class="text-gray-600">Achetée {{ option.quantite }} fois</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-4 text-center py-6 text-gray-500">
+                        <i class="fas fa-info-circle text-2xl mb-2"></i>
+                        <p>Aucune option achetée pendant la période</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- MaxIt Tab -->
+        <div x-show="activeTab === 'maxit'" class="animate__animated animate__fadeIn space-y-8">
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-bolt"></i> Programme MaxIt
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="stat-value">{{ rapport.actions_maxit|default:"0" }}</div>
+                        <div class="stat-label">Actions MaxIt</div>
+                        <div class="text-sm mt-1">{{ rapport.pourcentage_maxit|default:"0%" }} d'utilisation</div>
+                    </div>
+                    
+                  
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="stat-value">
+                            {{ rapport.derniere_action_maxit|default:"-"|truncatechars:15 }}
+                        </div>
+                        <div class="stat-label">Dernière action</div>
+                        <div class="text-sm mt-1">Date et heure</div>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+        
+        <!-- Recommendations Tab -->
+        
+        
+    </div>
+    
+    <!-- Footer Actions -->
+    <div class="mt-12 pt-6 border-t border-orange-200">
+        <div class="flex flex-col sm:flex-row justify-between items-center">
+            <div class="text-sm text-gray-500 mb-4 sm:mb-0">
+                <i class="far fa-clock mr-1"></i> Généré le {{ date_generation }}
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button onclick="window.print()" class="btn btn-primary" style="  background: #ff6600;
+                color: white;
+                border: none;
+                box-shadow: 0 4px 12px rgba(248, 155, 93, 0.3);">
+                    <i class="fas fa-print mr-2"></i> Imprimer
+                </button>
+                
+                <a href="{% url 'marketing_dashboard:vue_recommandation_client' %}" class="btn btn-primary" style="  background: #ff6600;
+                color: white;
+                border: none;
+                box-shadow: 0 4px 12px rgba(248, 155, 93, 0.3);">
+                    <i class="fas fa-lightbulb mr-2"></i> Voir les Recommandations
+                </a>
+                <a href="{% url 'marketing_dashboard:formulaire_client' %}" class="btn btn-outline">
+                    <i class="fas fa-redo mr-2"></i> Nouvelle analyse
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('alpine:init', () => {
+    console.log('Alpine.js est initialisé');
+    
+    // Vérifier si Chart.js est chargé
+    if (typeof Chart === 'undefined') {
+        console.error('Erreur: Chart.js n\'est pas chargé');
+    } else {
+        console.log('Chart.js est chargé avec succès');
+        
+        // Initialiser les graphiques après un court délai
+        setTimeout(() => {
+            initCharts();
+        }, 300);
+    }
+});
+
+function initCharts() {
+    // Couleurs cohérentes pour tous les graphiques
+    const chartColors = {
+        primary: 'rgba(255, 102, 0, 0.8)',
+        success: 'rgba(16, 185, 129, 0.8)',
+        warning: 'rgba(245, 158, 11, 0.8)',
+        danger: 'rgba(239, 68, 68, 0.8)',
+        info: 'rgba(59, 130, 246, 0.8)'
+    };
+
+    // Options communes pour tous les graphiques
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 1000,
+            easing: 'easeInOutQuart'
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    padding: 15,
+                    font: {
+                        size: 12
+                    },
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 13 },
+                padding: 12,
+                cornerRadius: 6,
+                displayColors: true,
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) label += ': ';
+                        if (context.parsed.y !== undefined) {
+                            label += context.parsed.y.toLocaleString();
+                        } else if (context.raw !== undefined) {
+                            label += context.raw.toLocaleString();
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    };
+
+    // Engagement Gauge
+    const engagementCtx = document.getElementById('engagementGauge');
+    if (engagementCtx) {
+        const engagementScore = {{ rapport.engagement_score|default:0 }};
+        const maxEngagement = 500; // Score maximum théorique
+        
+        new Chart(engagementCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Score', 'Restant'],
+                datasets: [{
+                    data: [engagementScore, maxEngagement - engagementScore],
+                    backgroundColor: [
+                        chartColors.primary,
+                        'rgba(0, 0, 0, 0.05)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '80%',
+                rotation: -90,
+                circumference: 180,
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+    }
+
+    // Rentability Gauge
+    const rentabilityCtx = document.getElementById('rentabilityGauge');
+    if (rentabilityCtx) {
+        const rentabilityClass = '{{ rapport.rentabilite_classe|default:"medium" }}';
+        let rentabilityValue, backgroundColor;
+        
+        if (rentabilityClass === 'high') {
+            rentabilityValue = 80;
+            backgroundColor = chartColors.success;
+        } else if (rentabilityClass === 'medium') {
+            rentabilityValue = 50;
+            backgroundColor = chartColors.warning;
+        } else {
+            rentabilityValue = 20;
+            backgroundColor = chartColors.danger;
+        }
+        
+        new Chart(rentabilityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Rentabilité', 'Restant'],
+                datasets: [{
+                    data: [rentabilityValue, 100 - rentabilityValue],
+                    backgroundColor: [
+                        backgroundColor,
+                        'rgba(0, 0, 0, 0.05)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '80%',
+                rotation: -90,
+                circumference: 180,
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+    }
+
+    // Consumption Chart
+    const consumptionCtx = document.getElementById('consumptionChart');
+    if (consumptionCtx) {
+        const consumptionData = [
+            {{ rapport.donnees_consommees|default:0 }},
+            {{ rapport.voix_utilisee|default:0 }},
+            {{ rapport.sms|default:0 }}
+        ];
+        
+        new Chart(consumptionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Données (Mo)', 'Voix (min)', 'SMS'],
+                datasets: [{
+                    label: 'Consommation',
+                    data: consumptionData,
+                    backgroundColor: [
+                        chartColors.info,
+                        chartColors.primary,
+                        chartColors.success
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

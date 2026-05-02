@@ -1,0 +1,91 @@
+{% extends 'admin_dashboard/base.html' %} {% block content %} {% load static %}
+<style>
+    main {
+        font-family: Arial, sans-serif;
+        background-image: url('/static/images/bk.png');
+        /* Path to the background image */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    
+    .form-container {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 900px;
+        margin: 0 auto;
+        text-align: left;
+    }
+    
+    .form-container h2 {
+        font-size: 2em;
+        margin-bottom: 0.3em;
+    }
+    
+    .form-container img {
+        max-width: 80px;
+        margin-bottom: 20px;
+        margin-right: 30px;
+    }
+    
+    .form-container input {
+        width: 80%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-align: left;
+    }
+    
+    .form-container button {
+        width: 100%;
+        padding: 10px;
+        background-color: #ff6600;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: bold;
+    }
+    
+    .form-container button:hover {
+        background-color: #7a7a79;
+    }
+    
+    .header-container {
+        display: flex;
+        align-items: center;
+        /* Align items vertically centered */
+    }
+    
+    .form-container a {
+        color: #ff6600;
+        text-decoration: none;
+    }
+    
+    .form-container a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+
+<main>
+    <div class="form-container">
+        <div class="header-container">
+            <img src="{% static 'images/logo.png' %}" alt="Bank Logo" class="logo">
+            <h2 class="profile-heading"> Profile</h2>
+        </div>
+        <form method="POST">
+            {% csrf_token %} {{ form.as_p }}
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+</main>
+{% endblock %}

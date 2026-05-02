@@ -1,0 +1,241 @@
+{% extends 'marketing_dashboard/base.html' %} {% block content %} {% load static %}
+<style>
+    main {
+        font-family: Arial, sans-serif;
+        background-image: url('/static/images/bk.png');
+        /* Path to the background image */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    
+    .form-container {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px #ff660033;
+        width: 100%;
+        max-width: 1000px;
+        box-sizing: border-box;
+    }
+    
+    .header-container {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .header-container h2 {
+        color: #0b0b0a;
+        font-size: 2.2em;
+        margin: 0;
+        padding: 10px 0;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .header-container h2:after {
+        content: '';
+        position: absolute;
+        width: 60px;
+        height: 4px;
+        background: #ff6600;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 2px;
+    }
+    .form-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.form-group {
+    flex: 1 1 25%;
+    min-width: 100px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 0.9em;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.85em;
+    height: 36px;
+}
+
+    .form-group textarea {
+        width: 40%;
+        padding: 12px 15px;
+        border: 2px solid #ff6600;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #ff6600;
+        box-shadow: 0 0 0 3px #ff660033;
+        outline: none;
+    }
+    
+    
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px; /* Espacement entre les boutons */
+        margin-top: 20px;
+    }
+
+    .form-container button {
+        flex: 1; /* Chaque bouton prend une part égale de l'espace */
+        padding: 10px;
+        background-color: #ff6600;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: bold;
+        margin: 0; /* On enlève les marges précédentes */
+        transition: background-color 0.3s; /* Transition fluide au survol */
+    }
+
+    .btn-primary { background-color: #ff6600; }
+    .btn-success { background-color: #0e0d0d; }
+    .btn-warning { background-color: #ff6600; color: #000; }
+
+    .form-container button:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        background-color: #070707;
+    }
+    
+
+    
+
+    .header-container {
+        display: flex;
+        align-items: center;
+        /* Align items vertically centered */
+    }
+    
+    .form-container a {
+        color: #ff6600;
+        text-decoration: none;
+    }
+    
+    .form-container a:hover {
+        text-decoration: underline;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .form-container button:hover {
+        animation: pulse 1.5s infinite;
+    }
+</style>
+
+
+<main>
+    <div class="form-container">
+        <div class="header-container">
+            <h2>📊 Analyse du Segment - {{ segment_type|title }}</h2>
+        </div>
+        
+        <form method="get" id="segment-type-form">
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                <label for="id_segment_type" style="margin-bottom: 0;">Type de segment:</label>
+                <select name="type" id="id_segment_type" class="form-control">
+                    <option value="acquisition" {% if segment_type == 'acquisition' %}selected{% endif %}>Acquisition</option>
+                    <option value="loyalty" {% if segment_type == 'loyalty' %}selected{% endif %}>Fidélisation</option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="margin-left: 10px;">Appliquer</button>
+            </div>
+        </form>
+        <form method="POST" action="{% url 'marketing_dashboard:vue_filtres_segment' %}?type={{ segment_type }}">
+            {% csrf_token %}
+            <input type="hidden" name="segment_type" value="{{ segment_type }}">
+            <div class="form-grid">
+                <!-- Date Fields -->
+                <div class="form-group" style="width:100%;">
+                    {{ form.date_debut.label_tag }}
+                    {{ form.date_debut }}
+                </div>
+                <div class="form-group" style="width: 100%;">
+                    {{ form.date_fin.label_tag }}
+                    {{ form.date_fin }}
+                </div>
+                
+                <!-- Segment Fields -->
+                <div class="form-group">
+                    {{ form.rentabilite.label_tag }}
+                    {{ form.rentabilite }}
+                </div>
+                <div class="form-group">
+                    {{ form.engagement.label_tag }}
+                    {{ form.engagement }}
+                </div>
+                
+                <!-- Only show type_client for acquisition -->
+                {% if segment_type == 'acquisition' %}
+                <div class="form-group">
+                    {{ form.type_client.label_tag }}
+                    {{ form.type_client }}
+                </div>
+                {% endif %}
+                
+                <!-- Common Fields -->
+                <div class="form-group">
+                    {{ form.type_interet.label_tag }}
+                    {{ form.type_interet }}
+                </div>
+                <div class="form-group">
+                    {{ form.interet_international.label_tag }}
+                    {{ form.interet_international }}
+                </div>
+                <div class="form-group">
+                    {{ form.interet_jeu.label_tag }}
+                    {{ form.interet_jeu }}
+                </div>
+                <div class="form-group">
+                    {{ form.interet_promo.label_tag }}
+                    {{ form.interet_promo }}
+                </div>
+                <div class="form-group">
+                    {{ form.action.label_tag }}
+                    {{ form.action }}
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button type="submit" name="rapport" class="btn btn-primary" style="  background: #ff6600;
+                color: white;
+                border: none;
+                box-shadow: 0 4px 12px rgba(248, 155, 93, 0.3);"  value="rapport">
+                    <span>Analyser ce segment</span>
+               
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

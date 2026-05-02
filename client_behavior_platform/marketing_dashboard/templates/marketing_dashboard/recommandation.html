@@ -1,0 +1,778 @@
+{% extends 'marketing_dashboard/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_head %}
+<!-- Chart.js pour les graphiques -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Alpine.js pour l'interactivité -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- ApexCharts pour des graphiques avancés -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<!-- Animate.css pour les animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #ff6600;
+        --primary-light: #fff0e6;
+        --primary-dark: #cc5200;
+        --secondary-color: #ff6600;
+        --success-color: #ff6600;
+        --danger-color: #e63946;
+        --warning-color: #ff9f1c;
+        --info-color: #ff6600;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --gray-100: #f1f1f1;
+        --gray-200: #e0e0e0;
+        --gray-300: #c0c0c0;
+        --gray-400: #999999;
+        --gray-500: #666666;
+        --border-color: #ff6600;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+        background-image: url('/static/images/bk.png');
+        color: #ff6600;
+        line-height: 1.6;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .page-header {
+        background:  #ff6600;
+        color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .page-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .page-subtitle {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: var(--card-shadow);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--primary-light);
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+    
+    .card-title i {
+        color: var(--primary-color);
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        transition: var(--transition);
+        cursor: pointer;
+        border: none;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+    }
+    
+    .btn-outline:hover {
+        background-color: var(--primary-light);
+    }
+    
+    .recommendation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.25rem;
+        margin-top: 1.5rem;
+    }
+    
+    .recommendation-card {
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    
+    .recommendation-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .recommendation-header {
+        background-color: var(--primary-light);
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .recommendation-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin: 0;
+    }
+    
+    .recommendation-importance {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .importance-high {
+        background-color: #ff6600;
+        color: white;
+    }
+    
+    .importance-medium {
+        background-color: #ff6600;
+        color: white;
+    }
+    
+    .importance-low {
+        background-color: #ff6600;
+        color: white;
+    }
+    
+    .recommendation-body {
+        padding: 1rem;
+    }
+    
+    .recommendation-desc {
+        color: var(--gray-500);
+        margin-bottom: 1rem;
+    }
+    
+    .recommendation-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.875rem;
+    }
+    
+    .recommendation-price {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    
+    .consumption-chart {
+        height: 300px;
+        margin-top: 1.5rem;
+    }
+    
+    .options-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .options-table th,
+    .options-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .options-table th {
+        background-color: var(--gray-100);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: var(--gray-500);
+    }
+    
+    .options-table tr:hover {
+        background-color: var(--gray-50);
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .badge-success {
+        background-color: #ff6600;
+        color: white;
+    }
+    
+    .badge-warning {
+        background-color: #ff6600;
+        color: white;
+    }
+    
+    .badge-danger {
+        background-color: #ff6600;
+        color: white;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal.show {
+        display: flex;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px #ff6600;
+    }
+    
+    .modal-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--gray-400);
+        transition: color 0.2s;
+    }
+    
+    .modal-close:hover {
+        color: var(--danger-color);
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .recommendation-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .card {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8" x-data="{
+    showOptionsModal: false,
+    showCatalogModal: false,
+    selectedOption: null,
+    init() {
+        // Initialize charts when component is mounted
+        this.$nextTick(() => {
+            this.initConsumptionChart();
+        });
+    },
+    
+    initConsumptionChart() {
+        const ctx = document.getElementById('consumptionChart');
+        if (!ctx) return;
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+                datasets: [{
+                    label: 'Consommation (en DH)',
+                    data: [65, 59, 80, 81, 56, 55, 40, 70, 90, 85, 95, 100],
+                    borderColor: '#ff6600',
+                    backgroundColor: 'rgba(255, 102, 0, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ff6600',
+                    pointBorderColor: '#ff6600',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                            family: 'Poppins',
+                            size: 14
+                        },
+                        bodyFont: {
+                            family: 'Poppins',
+                            size: 13
+                        },
+                        padding: 12,
+                        cornerRadius: 6,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 12
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    },
+    
+    viewCatalog() {
+        this.showCatalogModal = true;
+        document.body.style.overflow = 'hidden';
+    },
+    
+    closeCatalogModal() {
+        this.showCatalogModal = false;
+        document.body.style.overflow = 'auto';
+    },
+    
+    closeModal() {
+        this.showOptionsModal = false;
+        document.body.style.overflow = 'auto';
+        setTimeout(() => {
+            this.selectedOption = null;
+        }, 300);
+    }
+}">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Recommandations Personnalisées</h1>
+        <p class="page-subtitle">Découvrez les offres adaptées à votre profil de consommation</p>
+    </div>
+    
+    <!-- Client Consumption Card -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-chart-line"></i> Votre Consommation
+            </h2>
+            <button @click="showOptionsModal = true" class="btn btn-outline">
+                <i class="fas fa-list"></i> Historique des options
+            </button>
+            <button name="action" value="catalog" class="btn btn-outline" onclick="window.location.href = '{% url 'marketing_dashboard:catalogue_maxit' %}'" >
+                <i class="fas fa-book"></i> Voir le catalogue
+            </button>
+        </div>
+        
+        <div class="card-body">
+            
+            
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-3">Détails de consommation</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2">Données</h3>
+                        <p class="text-3xl font-bold">{{ profil.data_volume }} Mo</p>
+                        <p class="text-gray-600">Utilisés sur 30 jours</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2">Voix</h3>
+                        <p class="text-3xl font-bold">{{ profil.voice_volume }} min</p>
+                        <p class="text-gray-600">Appels sortants</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2">Dépense</h3>
+                        <p class="text-3xl font-bold">{{ profil.depense_actuelle }} Millimes</p>
+                        <p class="text-gray-600">Sur la période analysée</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommended Options -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-star"></i> Options Recommandées pour Vous
+            </h2>
+        </div>
+        
+        <div class="card-body">
+            {% if options %}
+                <div class="recommendation-grid">
+                    {% for option in options %}
+                    <div class="recommendation-card">
+                        <div class="recommendation-header">
+                            <h3 class="recommendation-title">{{ option.nom }}
+                                {% if option.promo_flag %}
+        <span class="text-red-500 font-bold ml-2">{{ option.promo_flag }}</span>
+    {% endif %}
+                            </h3>
+                            <span class="recommendation-importance importance-{{ option.importance|lower }}">
+                                {{ option.importance }}
+                            </span>
+                        </div>
+                        <div class="recommendation-body">
+                            <p class="recommendation-desc">
+                                <div class="space-y-2">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-tag text-ff6600 mr-2"></i>
+                                        <span>Type: {{ option.type|default:"Non spécifié" }}</span>
+                                    </div>
+                                   {% if option.type == 'data' or option.type == 'Data' %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-cloud text-ff6600 mr-2"></i>
+                                        <span>{{ option.volume_data }} Mo de data</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-phone text-ff6600 mr-2"></i>
+                                        <span>{{ option.volume_voix }} min de voix</span>
+                                    </div>
+                                    {% endif %}
+                                  
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar text-ff6600 mr-2"></i>
+                                        <span>Durée: {{ option.duree|default:30 }} jours</span>
+                                    </div>
+                                </div>
+                            </p>
+                            <div class="recommendation-meta">
+                                <span class="recommendation-price">{{ option.prix|default:"Gratuit" }} Millimes/{{ option.duree|default:30 }} jours</span>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-info-circle text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Aucune recommandation disponible pour le moment.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Purchased Options -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                
+                <i class="fas fa-check-circle"></i> Historique des options
+            </h2>
+        </div>
+        
+        <div class="card-body">
+            {% if comportement_options %}
+                <div class="overflow-x-auto">
+                    <table class="options-table">
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Type</th>
+                                <th>Volume Data</th>
+                                <th>Volume Voix</th>
+                                <th>Durée</th>
+                                <th>Prix</th>
+
+                                <th>Promo</th>
+                                <th>International</th>
+                                <th>Date d'achat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for opt in comportement_options %}
+                            <tr>
+                                <td>{{ opt.nom }}</td>
+                                <td>{{ opt.type|default:"-" }}</td>
+                                <td>
+                                    {% if opt.volume_data > 0 %}
+                                        {{ opt.volume_data }} Mo
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if opt.volume_voix > 0 %}
+                                        {{ opt.volume_voix }} min
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if opt.duree > 0 %}
+                                        {{ opt.duree }} jours
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if opt.prix > 0 %}
+                                        {{ opt.prix }} Millimes
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ opt.promo }}</td>
+                                <td>{{ opt.international }}</td>
+                                <td>{{ opt.date_activation }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-info-circle text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Aucune option active pour le moment.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Modal for Options List -->
+    <div x-show="showOptionsModal" class="modal" @click.self="closeModal()" x-transition:enter="ease-out duration-300" 
+         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="modal-content" @click.stop>
+            <div class="modal-header">
+                <h3 class="modal-title">Toutes les Options Disponibles</h3>
+                <button @click="closeModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                {% if catalogue %}
+                    <div class="space-y-4">
+                        {% for option in catalogue %}
+                        <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-lg">{{ option.nom }}</h4>
+                                    <p class="text-gray-600 text-sm mt-1">{{ option.description }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-ff6600">{{ option.prix }} DH/mois</div>
+                                    <span class="text-xs text-gray-500">{{ option.categorie }}</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    {% if option.popular %}
+                                    <span class="bg-ff6600 text-white text-xs px-2 py-1 rounded">Populaire</span>
+                                    {% endif %}
+                                    {% if option.nouveau %}
+                                    <span class="bg-ff6600 text-white text-xs px-2 py-1 rounded">Nouveau</span>
+                                    {% endif %}
+                                </div>
+                                <button class="text-sm bg-ff6600 text-white px-3 py-1 rounded hover:bg-ff6600 transition-colors">
+                                    Souscrire
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-info-circle text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">Aucune option disponible pour le moment.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+<!-- Modal Catalogue -->
+<div x-show="showCatalogModal" class="modal" @click.self="closeCatalogModal()">
+    <div class="modal-content" @click.stop>
+        <div class="modal-header">
+            <h3 class="modal-title">Catalogue des Options</h3>
+            <button @click="closeCatalogModal()" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="space-y-4">
+                {% if catalogue_options %}
+                    {% for option in catalogue_options %}
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold text-lg">{{ option.nom }}</h4>
+                                <p class="text-gray-600">
+                                    {% if option.volume_data > 0 %}
+                                        {{ option.volume_data }} Mo{% if option.volume_voix > 0 %} + {% endif %}
+                                    {% endif %}
+                                    {% if option.volume_voix > 0 %}
+                                        {{ option.volume_voix }} min
+                                    {% endif %}
+                                </p>
+                                <p class="text-gray-600">
+                                    {{ option.duree }} jours
+                                </p>
+                                <p class="text-gray-600">
+                                    {{ option.prix }} Millimes
+                                </p>
+                                <div class="mt-2 space-x-2">
+                                    <span class="badge {% if option.promo %}badge-success{% else %}badge-info{% endif %}">
+                                        {% if option.promo %}
+                                            Promo
+                                        {% else %}
+                                            Standard
+                                        {% endif %}
+                                    </span>
+                                    <span class="badge {% if option.international %}badge-success{% else %}badge-info{% endif %}">
+                                        {% if option.international %}
+                                            International
+                                        {% else %}
+                                            National
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-info-circle text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">Aucune option disponible dans le catalogue.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-8 flex flex-col sm:flex-row justify-between items-center">
+   
+    
+    <div class="action-buttons">
+       
+        <button name="action" class="btn btn-primary" value="message" style="  background: #ff6600;"
+         onclick="window.location.href = '{% url 'marketing_dashboard:vue_messages_marketing' %}'">
+            <i class="fas fa-lightbulb mr-1"></i> Générer messages marketing
+        </button>
+        
+       
+    </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Any additional JavaScript can be added here
+    document.addEventListener('alpine:init', () => {
+        // Alpine.js initialization if needed
+    });
+</script>
+{% endblock %}

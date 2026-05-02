@@ -1,0 +1,709 @@
+{% extends "marketing_dashboard/base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<!-- Chart.js pour les graphiques -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Alpine.js pour l'interactivité -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- Animate.css pour les animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #ff6600;
+        --primary-light: #fff0e6;
+        --primary-dark: #cc5200;
+        --secondary-color: #4d4d4d;
+        --success-color: #00a86b;
+        --danger-color: #e63946;
+        --warning-color: #ff9f1c;
+        --info-color: #e6a293;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --gray-100: #f1f1f1;
+        --gray-200: #e0e0e0;
+        --gray-300: #c0c0c0;
+        --gray-400: #999999;
+        --gray-500: #666666;
+        --border-color: #e0e0e0;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+        background-color: #f8f9fa;
+        color: #1f2937;
+        line-height: 1.6;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #ff6600, #cc5200);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .page-title i {
+        font-size: 1.5em;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 0.75rem;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+        border-top-left-radius: 0.75rem !important;
+        border-top-right-radius: 0.75rem !important;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--dark-color);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: var(--secondary-color);
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-select, .form-control {
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 0.625rem 1rem;
+        font-size: 0.9375rem;
+        transition: var(--transition);
+    }
+    
+    .form-select:focus, .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(255, 102, 0, 0.15);
+    }
+    
+    .btn {
+        border-radius: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
+    }
+    
+    .btn-outline-secondary {
+        color: var(--secondary-color) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--gray-100) !important;
+        color: var(--dark-color) !important;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        background-color: #f8f9fa;
+        color: var(--secondary-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .table tbody tr {
+        transition: var(--transition);
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(255, 102, 0, 0.03);
+    }
+    
+    .pagination .page-link {
+        color: var(--primary-color);
+        border: 1px solid var(--border-color);
+        margin: 0 0.25rem;
+        border-radius: 0.5rem !important;
+        min-width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .pagination .page-link:hover {
+        background-color: var(--primary-light);
+    }
+    
+    .empty-state {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: var(--gray-500);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--gray-300);
+    }
+    
+    .empty-state h5 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--gray-600);
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        border: 1px solid var(--border-color);
+        border-right: none;
+        border-top-left-radius: 0.5rem !important;
+        border-bottom-left-radius: 0.5rem !important;
+    }
+    
+    .input-group .form-control:last-child {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+    
+    @media (max-width: 767.98px) {
+        .page-header {
+            padding: 1.5rem 1rem;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .card-header {
+            padding: 1rem;
+        }
+    }
+     /* Styles pour le tableau */
+     .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+        cursor: pointer;
+    }
+    
+    .table-hover tbody tr:hover {
+        transform: translateX(2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Style pour la pagination */
+    .pagination .page-link {
+        color: #495057;
+        border: 1px solid #dee2e6;
+        margin: 0 2px;
+        border-radius: 4px;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #ff6600;
+        border-color: #ff6600;
+    }
+    
+    /* Style pour les cellules du tableau */
+    .table td .text-truncate {
+        transition: all 0.2s ease;
+    }
+    
+    .table td:hover .text-truncate {
+        white-space: normal;
+        max-width: none;
+        background: white;
+        position: absolute;
+        z-index: 10;
+        padding: 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Style pour l'en-tête fixe */
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+        <div class="container">
+            <h1 class="page-title">
+                <i class="fas fa-database"></i>
+                Explorateur de Données
+            </h1>
+            <p class="mb-0 mt-2 opacity-75">Explorez et analysez vos données de manière intuitive et efficace</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Messages d'erreur -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Message d'erreur global (pour compatibilité) -->
+        {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            {{ error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-filter me-2"></i>
+                    Filtres de recherche
+                </h2>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3" id="filterForm">
+                    <!-- Filtre par type de fichier -->
+                    <div class="col-md-4">
+                        <label for="id_type_fichier" class="form-label">
+                            <i class="fas fa-file-alt me-1"></i>
+                            Type de données
+                        </label>
+                        <div class="input-group">
+                            {{ form.type_fichier }}
+                        </div>
+                        {% if form.type_fichier.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.type_fichier.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Filtre par mois/année -->
+                    <div class="col-md-4">
+                        <label for="id_mois" class="form-label">
+                            <i class="far fa-calendar-alt me-1"></i>
+                            Période
+                        </label>
+                        <div class="input-group">
+                            {{ form.mois }}
+                        </div>
+                        {% if form.mois.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.mois.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Bouton de soumission -->
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" style="background-color: #ff6600;" id="submitButton">
+                            <i class="fas fa-search me-1"></i> Appliquer
+                        </button>
+                    </div>
+                    
+                    <!-- Bouton de réinitialisation -->
+                    <div class="col-md-2 d-flex align-items-end">
+                        <a href="{% url 'marketing_dashboard:vue_tables' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-undo me-1"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+
+              
+        </div>
+
+        <!-- Tableau des données -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="card-title mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Données
+                </h2>
+                {% if selected_file %}
+                <div class="badge bg-primary bg-opacity-10 text-primary p-2">
+                    <i class="fas fa-file-alt me-1"></i>
+                    {{ selected_file }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                {% if columns and data %}
+                <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div class="mb-3 sm:mb-0">
+                        <h2 class="text-lg font-semibold text-gray-800">Données du Fichier</h2>
+                        <p class="text-sm text-gray-500">{{ page_obj.paginator.count}} lignes trouvées</p>
+                    </div>
+                    <div class="relative w-full sm:w-64">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" x-model="searchTerm" 
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:text-sm" 
+                               placeholder="Rechercher...">
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto" x-data="{ searchTerm: '' }"
+                     x-init="$watch('searchTerm', value => {
+                         const rows = document.querySelectorAll('tbody tr[data-row]');
+                         rows.forEach(row => {
+                             const text = row.textContent.toLowerCase();
+                             row.style.display = text.includes(value.toLowerCase()) ? '' : 'none';
+                         });
+                     })">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                {% for column in columns %}
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span>{{ column }}</span>
+                                        <button class="ml-1 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                            <i class="fas fa-sort"></i>
+                                        </button>
+                                    </div>
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for row in data %}
+                            <tr class="hover:bg-gray-50 transition-colors duration-150" data-row>
+                                {% for value in row.values %}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <div class="text-sm text-gray-900">
+                                        {% if value is not none %}
+                                            {% if value is string %}
+                                                {{ value|truncatechars:50|default:"-" }}
+                                            {% else %}
+                                                {{ value|stringformat:"s"|truncatechars:50|default:"-" }}
+                                            {% endif %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="bg-white px-6 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Affichage de <span class="font-medium">{{ page_obj.start_index }}</span> à 
+                                <span class="font-medium">{{ page_obj.end_index }}</span> sur 
+                                <span class="font-medium">{{ page_obj.paginator.count }}</span> résultats
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <span class="sr-only">Première</span>
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                                       class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <span class="sr-only">Précédent</span>
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-orange-500 bg-orange-50 text-sm font-medium text-orange-600">
+                                            {{ num }}
+                                        </span>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                            {{ num }}
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                                       class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <span class="sr-only">Suivant</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <span class="sr-only">Dernière</span>
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% elif selected_file %}
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h5>Aucune donnée trouvée</h5>
+                    <p class="mb-0">Aucune donnée ne correspond à vos critères de recherche.</p>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-database"></i>
+                    <h5>Aucun fichier sélectionné</h5>
+                    <p class="mb-0">Veuillez sélectionner un fichier dans la liste déroulante pour afficher son contenu.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // Activer les tooltips
+    $(function () {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+    
+    // Trier le tableau au clic sur l'en-tête
+    $('th').on('click', function() {
+        const table = $(this).parents('table').eq(0);
+        const rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()));
+        this.asc = !this.asc;
+        if (!this.asc) {
+            rows.reverse();
+        }
+        for (let i = 0; i < rows.length; i++) {
+            table.append(rows[i]);
+        }
+    });
+    
+    function comparer(index) {
+        return function(a, b) {
+            const valA = getCellValue(a, index);
+            const valB = getCellValue(b, index);
+            return $.isNumeric(valA) && $.isNumeric(valB) ? 
+                valA - valB : valA.localeCompare(valB);
+        };
+    }
+    
+    function getCellValue(row, index) {
+        return $(row).children('td').eq(index).text().toLowerCase();
+    }
+$(document).ready(function() {
+    // Initialisation des sélecteurs avec Select2 pour une meilleure expérience utilisateur
+    $('select').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: function() {
+            return $(this).data('placeholder') || 'Sélectionnez une option...';
+        },
+        allowClear: true
+    });
+
+    // Fonction pour soumettre le formulaire avec les filtres sélectionnés
+    function submitFilterForm() {
+        // Désactiver les champs pendant le chargement
+        const $form = $('form');
+        $form.find('select, button').prop('disabled', true);
+        
+        // Afficher un indicateur de chargement
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalBtnText = $submitBtn.html();
+        $submitBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Chargement...');
+        
+        // Soumettre le formulaire
+        $form.submit();
+    }
+
+    // Écouteurs d'événements pour les changements de filtre
+    $('#id_type_fichier, #id_mois').on('change', function() {
+        // Soumettre automatiquement le formulaire lors du changement de filtre
+        submitFilterForm();
+    });
+    
+    // Gestion de la soumission du formulaire de recherche
+    $('form').on('submit', function(e) {
+        // Empêcher la soumission multiple
+        if ($(this).data('submitting')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Marquer le formulaire comme en cours de soumission
+        $(this).data('submitting', true);
+        
+        // Si c'est une requête AJAX pour le filtrage dynamique
+        if ($(this).find('input[name="fichier_change"]').length) {
+            e.preventDefault();
+            
+            // Soumettre le formulaire normalement
+            this.submit();
+            return false;
+        }
+        
+        // Pour les autres soumissions, continuer normalement
+        return true;
+    });
+
+    // Gestion de l'affichage des tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Animation de chargement pour les boutons de soumission
+    $('form').on('submit', function() {
+        const $submitBtn = $(this).find('button[type="submit"]');
+        $submitBtn.prop('disabled', true).html(
+            '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Chargement...'
+        );
+    });
+
+    // Initialisation des tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Gestion du tri des colonnes
+    $('.sortable').on('click', function() {
+        const $this = $(this);
+        const currentUrl = new URL(window.location.href);
+        const sortField = $this.data('sort');
+        let sortOrder = 'asc';
+        
+        // Inverser l'ordre de tri si on clique sur la même colonne
+        if (currentUrl.searchParams.get('sort') === sortField) {
+            sortOrder = currentUrl.searchParams.get('order') === 'asc' ? 'desc' : 'asc';
+        }
+        
+        // Mettre à jour les paramètres d'URL
+        currentUrl.searchParams.set('sort', sortField);
+        currentUrl.searchParams.set('order', sortOrder);
+        
+        // Recharger la page avec les nouveaux paramètres
+        window.location.href = currentUrl.toString();
+    });
+
+    // Gestion des messages toast
+    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    const toastList = toastElList.map(function(toastEl) {
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+        return toast;
+    });
+
+    // Initialisation des popovers
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl);
+    });
+
+    // Gestion du débordement horizontal sur mobile
+    function handleHorizontalScroll() {
+        const $tableWrapper = $('.table-responsive');
+        if ($(window).width() < 768) {
+            $tableWrapper.addClass('table-responsive-sm');
+        } else {
+            $tableWrapper.removeClass('table-responsive-sm');
+        }
+    }
+
+    // Exécuter au chargement et au redimensionnement de la fenêtre
+    $(window).on('resize', handleHorizontalScroll);
+    handleHorizontalScroll();
+});
+</script>
+{% endblock %}
