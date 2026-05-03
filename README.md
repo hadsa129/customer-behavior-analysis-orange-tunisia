@@ -1,8 +1,138 @@
-# Customer Behavior Analysis & Personalized Recommendation Platform - Orange Tunisia
+I need to add this architecture image to the readme :# Customer Behavior Analysis & Personalized Recommendation Platform - Orange Tunisia
 
 ## 🎯 Objective
 
-This advanced analytics platform enables understanding of Orange Tunisia customer behavior and provides personalized recommendations. It combines big data, machine learning, and AI techniques to deliver actionable insights to marketing teams.
+This advanced analytics platform enables understanding of Orange Tunisia customer behavior and provides personalized recommendations. It 
+aims to design an intelligent platform for analyzing Orange Tunisia customer behaviors, predicting churn, and automatically recommending personalized offers, particularly through the Max It application. It aligns with the operator's digital transformation strategy, focusing on marketing personalization and customer engagement optimization.It combines big data, machine learning, and AI techniques to deliver actionable insights to marketing teams.
+
+---
+
+## 📌 Project Objectives
+
+### Business Objectives
+- Analyze multi-channel behaviors (Max It, USSD...)
+- Dynamically segment customers
+- Predict churn
+- Recommend personalized offers
+- Generate adapted marketing messages
+- Assist marketing teams with interactive dashboards
+
+### Technical Objectives
+- Distributed Big Data architecture
+- AI models for segmentation, churn, recommendation
+- LLM integration for marketing content generation
+- Dynamic decision-making dashboards
+## 🏗️ System Architecture
+
+The following diagram illustrates the complete architecture of the Customer Behavior Analysis & Personalized Recommendation Platform, including the Big Data ETL pipeline, AI/ML components, Django backend services, deployment infrastructure, and user interfaces.
+
+<p align="center">
+  <img src="platform_architecture.png" alt="Orange Tunisia Customer Behavior Analysis Platform Architecture" width="100%">
+</p>
+
+### Architecture Overview
+- **Data Sources**: Customer profiles, transactions, options history, and external APIs
+- **Big Data & ETL**: Apache Spark, HDFS, Hive Metastore, distributed processing
+- **AI & ML Core**:
+  - Customer Segmentation (K-Means)
+  - Churn Prediction (XGBoost)
+  - Recommendation Engine
+  - LLM-based marketing generation using Qwen + LangChain
+- **Backend Services**:
+  - Django REST Framework
+  - PostgreSQL
+  - Redis cache
+- **Deployment & Infrastructure**:
+  - Docker
+  - Nginx + Gunicorn
+- **User Interfaces**:
+  - Marketing Dashboard
+  - Django Admin
+  - REST APIs
+  - Jupyter Analytical Notebooks
+---
+
+### Available Interfaces
+After launching services, several interfaces are available:
+
+#### Marketing Web Interface (`marketing_dashboard`)
+Accessible via browser at [http://localhost:8000](http://localhost:8000)
+→ Dashboards, segment visualization, churn scores, marketing message generation, interactive reports, KPIs, etc.
+
+#### Django Admin Interface
+Accessible via [http://localhost:8000/admin](http://localhost:8000/admin)
+→ User management, model administration, access rights, advanced platform administration.
+
+#### REST API
+→ For integration or automation (specific endpoints to be documented).
+
+#### Analytical Notebooks Access
+→ For data scientists wishing to execute or adapt notebooks like `prep_hive.ipynb` (environment-dependent).
+
+### 🖥️ Web Interface – `marketing_dashboard`
+The Django `marketing_dashboard` application provides a complete web interface for marketing teams and administrators. It offers:
+
+- **Customer Analysis**: Detailed customer file (history, behaviors, scores, personalized recommendations)
+- **Segment Analysis**: Customer segment exploration, advanced filters, reports, group recommendations, marketing message generation for segments
+- **Segmentation Analysis**: Interactive cluster/segment visualization, global statistics, group evolution
+- **Churn Analysis**: Access to churn scores, at-risk customer lists, targeted retention actions
+- **Tables**: Access to data tables (customers, options, histories), search and export
+- **Marketing History**: Campaign tracking, click-through rates, conversions, message logs
+- **Authentication**: Secure access management (login, role and access rights management)
+
+Access is via browser after starting the Django server (default http://localhost:8000). The interface is responsive and designed for quick adoption by business teams.
+
+
+## 🧠 Models and Artificial Intelligence
+
+### Segmentation Model
+- **Algorithm**: K-Means (MLlib)
+- **Input Features**: Usage patterns, revenue, engagement metrics
+- **Output**: Customer segments with behavioral characteristics
+- **Validation**: Silhouette score, business domain validation
+
+### Churn Prediction Model
+- **Algorithm**: XGBoost
+- **Features**: Historical usage, recent changes, complaint patterns
+- **Output**: Churn probability (0-1 scale)
+- **Performance**: AUC-ROC > 0.85 target
+
+### Recommendation Engine
+- **Algorithm**: Cosine similarity + collaborative filtering
+- **Features**: Purchase history, usage patterns, segment preferences
+- **Output**: Ranked list of personalized recommendations
+- **Evaluation**: Precision@K, recall@K metrics
+
+### LLM Integration
+- **Model**: Qwen via LangChain, Ollama
+- **Purpose**: Marketing content generation
+- **Applications**: Personalized messages, campaign copy
+- **Fine-tuning**: Domain-specific marketing language
+
+---
+
+## 🛠️ Technical Platform
+
+### Django Application
+- **Backend**: Web framework, user management, dashboards
+- **Location**: `client_behavior_platform/`, `marketing_dashboard/`
+- **Features**: Customer analysis, segment exploration, churn monitoring
+
+### Ollama LLM Server
+- **Purpose**: Local LLM serving for text generation
+- **Script**: `start_ollama.sh`
+- **Integration**: LangChain for structured prompts
+
+### Docker Orchestration
+- **Files**: `Dockerfile`, `docker-compose.yml`
+- **Services**: Web app, database, Spark cluster, Redis
+- **Benefits**: Consistent deployment, scalability
+
+### Big Data Stack
+- **Spark**: Distributed data processing
+- **Hive**: Data warehouse with metastore
+- **Hadoop**: Distributed storage (optional)
+- **Integration**: Docker-based deployment
 
 ## ✨ Key Features
 
@@ -392,79 +522,7 @@ The `docker-compose.yml` file configures the following services:
 - Marketing interface: http://localhost:8000/marketing-panel
 - REST API: http://localhost:8000/api/
 
-## 🎯 Project Introduction
-This project aims to design an intelligent platform for analyzing Orange Tunisia customer behaviors, predicting churn, and automatically recommending personalized offers, particularly through the Max It application. It aligns with the operator's digital transformation strategy, focusing on marketing personalization and customer engagement optimization.
 
----
-
-## 📌 Project Objectives
-
-### Business Objectives
-- Analyze multi-channel behaviors (Max It, USSD...)
-- Dynamically segment customers
-- Predict churn
-- Recommend personalized offers
-- Generate adapted marketing messages
-- Assist marketing teams with interactive dashboards
-
-### Technical Objectives
-- Distributed Big Data architecture
-- AI models for segmentation, churn, recommendation
-- LLM integration for marketing content generation
-- Dynamic decision-making dashboards
-
----
-
-## 🧠 Models and Artificial Intelligence
-
-### Segmentation Model
-- **Algorithm**: K-Means (MLlib)
-- **Input Features**: Usage patterns, revenue, engagement metrics
-- **Output**: Customer segments with behavioral characteristics
-- **Validation**: Silhouette score, business domain validation
-
-### Churn Prediction Model
-- **Algorithm**: XGBoost
-- **Features**: Historical usage, recent changes, complaint patterns
-- **Output**: Churn probability (0-1 scale)
-- **Performance**: AUC-ROC > 0.85 target
-
-### Recommendation Engine
-- **Algorithm**: Cosine similarity + collaborative filtering
-- **Features**: Purchase history, usage patterns, segment preferences
-- **Output**: Ranked list of personalized recommendations
-- **Evaluation**: Precision@K, recall@K metrics
-
-### LLM Integration
-- **Model**: Qwen via LangChain, Ollama
-- **Purpose**: Marketing content generation
-- **Applications**: Personalized messages, campaign copy
-- **Fine-tuning**: Domain-specific marketing language
-
----
-
-## 🛠️ Technical Platform
-
-### Django Application
-- **Backend**: Web framework, user management, dashboards
-- **Location**: `client_behavior_platform/`, `marketing_dashboard/`
-- **Features**: Customer analysis, segment exploration, churn monitoring
-
-### Ollama LLM Server
-- **Purpose**: Local LLM serving for text generation
-- **Script**: `start_ollama.sh`
-- **Integration**: LangChain for structured prompts
-
-### Docker Orchestration
-- **Files**: `Dockerfile`, `docker-compose.yml`
-- **Services**: Web app, database, Spark cluster, Redis
-- **Benefits**: Consistent deployment, scalability
-
-### Big Data Stack
-- **Spark**: Distributed data processing
-- **Hive**: Data warehouse with metastore
-- **Hadoop**: Distributed storage (optional)
-- **Integration**: Docker-based deployment
 
 ---
 
