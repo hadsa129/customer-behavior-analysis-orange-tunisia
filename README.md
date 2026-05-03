@@ -64,7 +64,7 @@ Watch the platform demonstration video below to explore the complete workflow, i
 ## 📂 Demo Location
 
 ```text
-docs/demo/demo.mov
+demo final.mov
 ```
 ### Available Interfaces
 After launching services, several interfaces are available:
