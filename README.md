@@ -51,7 +51,21 @@ The following diagram illustrates the complete architecture of the Customer Beha
   - REST APIs
   - Jupyter Analytical Notebooks
 ---
+## 🎥 Demo Video
 
+Watch the platform demonstration video below to explore the complete workflow, including customer segmentation, churn prediction, recommendation generation, dashboards, and AI-powered marketing features.
+
+<p align="center">
+  <video src="demo final.mov" controls width="100%"></video>
+</p>
+
+> If the video preview is not supported on GitHub, you can download it directly from the repository.
+
+## 📂 Demo Location
+
+```text
+docs/demo/demo.mov
+```
 ### Available Interfaces
 After launching services, several interfaces are available:
 
