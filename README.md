@@ -1,4 +1,4 @@
-I need to add this architecture image to the readme :# Customer Behavior Analysis & Personalized Recommendation Platform - Orange Tunisia
+# Customer Behavior Analysis & Personalized Recommendation Platform - Orange Tunisia
 
 ## 🎯 Objective
 
